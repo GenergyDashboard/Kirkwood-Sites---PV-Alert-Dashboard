@@ -2,9 +2,11 @@ name: Scrape and Process Kirkwood Spar Data
 
 on:
   schedule:
-    # Run every hour at 15 minutes past the hour (different from other sites)
     - cron: '15 * * * *'
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   scrape-and-process:
