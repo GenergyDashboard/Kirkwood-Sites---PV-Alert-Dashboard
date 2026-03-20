@@ -2,9 +2,11 @@ name: Scrape and Process Kirkwood FNB Data
 
 on:
   schedule:
-    # Run every hour at 10 minutes past the hour (different from Addo Spar)
     - cron: '10 * * * *'
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   scrape-and-process:
