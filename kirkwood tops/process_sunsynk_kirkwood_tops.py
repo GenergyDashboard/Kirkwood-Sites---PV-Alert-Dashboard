@@ -1,0 +1,500 @@
+"""
+process_sunsynk_kirkwood_tops.py
+
+Enhanced Sunsynk processor for Kirkwood Tops that:
+- Uses snapshot-based hourly delta calculation (Sunsynk-specific)
+- Stores historical daily data
+- Fetches irradiation from Open-Meteo API
+- Calculates 30-day hourly averages (bell curve baseline)
+- Calculates 30-day min/max bands
+- Sends Telegram alerts for underperformance
+- Produces dashboard-ready JSON
+
+Works with download_sunsynk.py which saves snapshots every run.
+"""
+
+import json
+import math
+import os
+import sys
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+
+import requests
+
+# =============================================================================
+# ✏️  SITE THRESHOLDS — edit directly here, do NOT set as GitHub secrets
+# =============================================================================
+DAILY_EXPECTED_KWH = 37.0    # Average good day for this site (kWh)
+DAILY_LOW_KWH      = 17.0    # Known worst/low production day (kWh)
+
+# =============================================================================
+# 🔒 SECRETS — set in GitHub repo Settings → Secrets → Actions
+# =============================================================================
+PLANT_NAME         = os.environ.get("PLANT_NAME", "Kirkwood Tops")
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID",   "")
+
+# Site location for irradiation (Kirkwood, Eastern Cape)
+SITE_LATITUDE  = -33.3937
+SITE_LONGITUDE = 25.4418
+
+# =============================================================================
+# FIXED CONFIG
+# =============================================================================
+PACE_THRESHOLD_PCT = 0.30
+OFFLINE_THRESHOLD  = 0.01
+HISTORY_DAYS       = 30
+
+SAST         = timezone(timedelta(hours=2))
+_HERE        = Path(__file__).parent
+SNAPSHOT     = _HERE / "data" / "sunsynk_snapshot.json"
+PREV_SNAP    = _HERE / "data" / "sunsynk_snapshot_prev.json"
+HOURLY_FILE  = _HERE / "data" / "sunsynk_hourly.json"
+OUTPUT_FILE  = _HERE / "data" / "processed.json"
+HISTORY_FILE = _HERE / "data" / "history.json"
+STATE_FILE   = _HERE / "data" / "alert_state.json"
+
+
+# =============================================================================
+# Solar curve
+# =============================================================================
+
+def solar_window(month: int) -> tuple:
+    mid_day   = (month - 1) * 30 + 15
+    amplitude = 0.75
+    angle     = 2 * math.pi * (mid_day - 355) / 365
+    shift     = amplitude * math.cos(angle)
+    return 6.0 - shift, 18.0 + shift
+
+
+def solar_curve_fraction(hour: int, month: int) -> float:
+    sunrise, sunset = solar_window(month)
+    solar_day = sunset - sunrise
+    if solar_day <= 0:
+        return 0.0
+    elapsed = (hour + 1) - sunrise
+    if elapsed <= 0:
+        return 0.0
+    if elapsed >= solar_day:
+        return 1.0
+    return (1 - math.cos(math.pi * elapsed / solar_day)) / 2
+
+
+# =============================================================================
+# Fetch irradiation data from Open-Meteo
+# =============================================================================
+
+def fetch_irradiation(date_str: str) -> list:
+    """
+    Fetch hourly GHI (Global Horizontal Irradiance) for the given date.
+    Returns list of 24 hourly values in W/m².
+    """
+    try:
+        url = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": SITE_LATITUDE,
+            "longitude": SITE_LONGITUDE,
+            "hourly": "shortwave_radiation",
+            "timezone": "Africa/Johannesburg",
+            "start_date": date_str,
+            "end_date": date_str,
+        }
+        resp = requests.get(url, params=params, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        
+        irradiation = data.get("hourly", {}).get("shortwave_radiation", [])
+        # Ensure we have exactly 24 values
+        while len(irradiation) < 24:
+            irradiation.append(0)
+        return [round(v if v else 0, 1) for v in irradiation[:24]]
+    
+    except Exception as e:
+        print(f"  ⚠️  Irradiation fetch failed: {e}")
+        return [0] * 24
+
+
+# =============================================================================
+# Hourly delta calculation (Sunsynk-specific)
+# =============================================================================
+
+def load_json(path: Path) -> dict | None:
+    if not path.exists():
+        return None
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"  ⚠️  Could not load {path}: {e}")
+        return None
+
+
+def build_hourly(current: dict, prev: dict | None, today: str) -> list:
+    """
+    Load persisted hourly accumulator for today, then apply the latest delta.
+    Returns a 24-element list of kWh per hour.
+    """
+    # Load today's hourly accumulator (reset if date changed)
+    acc_data = load_json(HOURLY_FILE)
+    if acc_data and acc_data.get("date") == today:
+        hourly = acc_data["hourly"]
+    else:
+        print(f"  ℹ️  New day ({today}) — resetting hourly accumulator")
+        hourly = [0.0] * 24
+
+    current_hour = current["hour"]
+
+    # Calculate delta from previous snapshot
+    if prev is None:
+        print("  ℹ️  No previous snapshot — delta = 0 for this run")
+        delta = 0.0
+    elif prev.get("date") != today:
+        print(f"  ℹ️  Previous snapshot is from {prev.get('date')} — delta = 0 (day rollover)")
+        delta = 0.0
+    else:
+        delta = current["total_kwh"] - prev["total_kwh"]
+        if delta < 0:
+            print(f"  ⚠️  Negative delta ({delta:.3f} kWh) — clamping to 0")
+            delta = 0.0
+        print(f"  ⚡ Delta this run: {delta:.3f} kWh → hour {current_hour:02d}:00")
+
+    # Accumulate into this hour's slot
+    hourly[current_hour] = round(hourly[current_hour] + delta, 4)
+
+    # Persist updated accumulator
+    HOURLY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(HOURLY_FILE, "w") as f:
+        json.dump({"date": today, "hourly": hourly}, f, indent=2)
+    print(f"  💾 Hourly accumulator saved: {HOURLY_FILE}")
+
+    return hourly
+
+
+# =============================================================================
+# Historical data management
+# =============================================================================
+
+def load_history() -> dict:
+    """Load historical data, returns dict of {date: {data}}"""
+    if not HISTORY_FILE.exists():
+        return {}
+    try:
+        with open(HISTORY_FILE) as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"  ⚠️  Could not load history: {e}")
+        return {}
+
+
+def save_history(history: dict):
+    """Save historical data and prune to last HISTORY_DAYS"""
+    HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Prune old entries
+    cutoff = (datetime.now(SAST) - timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d")
+    history = {k: v for k, v in history.items() if k >= cutoff}
+    
+    with open(HISTORY_FILE, "w") as f:
+        json.dump(history, f, indent=2)
+
+
+def calculate_30day_stats(history: dict) -> dict:
+    """Calculate 30-day statistics"""
+    if not history:
+        return {
+            "hourly_avg": [0] * 24,
+            "hourly_min": [0] * 24,
+            "hourly_max": [0] * 24,
+            "daily_min": 0,
+            "daily_max": 0,
+            "daily_avg": 0,
+            "sample_days": 0,
+        }
+    
+    # Collect all hourly values across days
+    hourly_values = [[] for _ in range(24)]
+    daily_totals = []
+    
+    for date, day_data in history.items():
+        hourly = day_data.get("hourly", [0] * 24)
+        total = day_data.get("total_kwh", 0)
+        
+        if total > 0:
+            daily_totals.append(total)
+            for hour in range(24):
+                if hour < len(hourly):
+                    hourly_values[hour].append(hourly[hour])
+    
+    # Calculate stats
+    hourly_avg = [
+        round(sum(vals) / len(vals), 2) if vals else 0
+        for vals in hourly_values
+    ]
+    hourly_min = [
+        round(min(vals), 2) if vals else 0
+        for vals in hourly_values
+    ]
+    hourly_max = [
+        round(max(vals), 2) if vals else 0
+        for vals in hourly_values
+    ]
+    
+    return {
+        "hourly_avg": hourly_avg,
+        "hourly_min": hourly_min,
+        "hourly_max": hourly_max,
+        "daily_min": round(min(daily_totals), 1) if daily_totals else 0,
+        "daily_max": round(max(daily_totals), 1) if daily_totals else 0,
+        "daily_avg": round(sum(daily_totals) / len(daily_totals), 1) if daily_totals else 0,
+        "sample_days": len(daily_totals),
+    }
+
+
+# =============================================================================
+# Status checks
+# =============================================================================
+
+def determine_status(total: float, last_hour: int, month: int, stats: dict) -> tuple:
+    """Returns (status, alerts, debug). Uses 30-day stats for smarter thresholds."""
+    alerts = {"offline": False, "pace_low": False, "total_low": False}
+    sunrise, sunset = solar_window(month)
+
+    if total < OFFLINE_THRESHOLD:
+        alerts["offline"] = True
+        return "offline", alerts, {
+            "reason": "no generation detected",
+            "curve_fraction": 0.0, "expected_by_now": 0.0,
+            "pace_trigger": 0.0, "projected_total": 0.0,
+            "sunrise": round(sunrise, 2), "sunset": round(sunset, 2),
+        }
+
+    curve_frac = solar_curve_fraction(last_hour, month)
+
+    if curve_frac < 0.10:
+        return "ok", alerts, {
+            "reason": "too early to assess",
+            "curve_fraction": round(curve_frac, 3),
+            "expected_by_now": round(DAILY_EXPECTED_KWH * curve_frac, 1),
+            "pace_trigger": 0.0, "projected_total": 0.0,
+            "sunrise": round(sunrise, 2), "sunset": round(sunset, 2),
+        }
+
+    expected_by_now = DAILY_EXPECTED_KWH * curve_frac
+    pace_trigger    = expected_by_now * PACE_THRESHOLD_PCT
+    projected_total = total / curve_frac
+
+    if total < pace_trigger:
+        alerts["pace_low"] = True
+    
+    # Use 30-day min if available
+    daily_min = stats.get("daily_min", DAILY_LOW_KWH)
+    if daily_min < 1:
+        daily_min = DAILY_LOW_KWH
+    
+    if projected_total < daily_min:
+        alerts["total_low"] = True
+
+    debug = {
+        "curve_fraction":  round(curve_frac, 3),
+        "expected_by_now": round(expected_by_now, 1),
+        "actual_kwh":      round(total, 2),
+        "pace_trigger":    round(pace_trigger, 1),
+        "projected_total": round(projected_total, 1),
+        "low_day_kwh":     daily_min,
+        "sunrise":         round(sunrise, 2),
+        "sunset":          round(sunset, 2),
+        "checks": {
+            "pace_low":  alerts["pace_low"],
+            "total_low": alerts["total_low"],
+        },
+    }
+
+    status = "low" if (alerts["pace_low"] or alerts["total_low"]) else "ok"
+    return status, alerts, debug
+
+
+# =============================================================================
+# Telegram
+# =============================================================================
+
+def send_telegram(message: str) -> bool:
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("  ⚠️  Telegram not configured — skipping")
+        return False
+    try:
+        resp = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            json={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "HTML"},
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            print("  ✅ Telegram alert sent")
+            return True
+        print(f"  ❌ Telegram error {resp.status_code}: {resp.text[:200]}")
+        return False
+    except Exception as e:
+        print(f"  ❌ Telegram request failed: {e}")
+        return False
+
+
+def send_alerts(status: str, alerts: dict, total: float, last_hour: int, debug: dict):
+    now_str         = datetime.now(SAST).strftime("%Y-%m-%d %H:%M SAST")
+    expected_by_now = debug.get("expected_by_now", 0)
+    projected_total = debug.get("projected_total", 0)
+    low_day_kwh     = debug.get("low_day_kwh", DAILY_LOW_KWH)
+
+    prev_status = "ok"
+    if STATE_FILE.exists():
+        try:
+            with open(STATE_FILE) as f:
+                prev_status = json.load(f).get("last_status", "ok")
+        except Exception:
+            pass
+
+    if alerts["offline"]:
+        send_telegram(
+            f"🔴 <b>{PLANT_NAME} — OFFLINE</b>\n"
+            f"No generation detected.\n"
+            f"Total today: <b>{total:.2f} kWh</b> (as of {last_hour:02d}:00)\n"
+            f"🕐 {now_str}"
+        )
+    else:
+        if alerts["pace_low"]:
+            send_telegram(
+                f"🟡 <b>{PLANT_NAME} — LOW PACE</b>\n"
+                f"Generation is well behind the expected curve.\n"
+                f"Actual so far:   <b>{total:.1f} kWh</b>\n"
+                f"Expected by now: <b>~{expected_by_now:.0f} kWh</b>\n"
+                f"Hour: {last_hour:02d}:00 | 🕐 {now_str}"
+            )
+        if alerts["total_low"]:
+            send_telegram(
+                f"🟠 <b>{PLANT_NAME} — POOR DAY PROJECTED</b>\n"
+                f"At current pace, today will finish below the 30-day minimum.\n"
+                f"Actual so far:     <b>{total:.1f} kWh</b>\n"
+                f"Projected end-day: <b>~{projected_total:.0f} kWh</b>\n"
+                f"30-day minimum:    <b>{low_day_kwh:.0f} kWh</b>\n"
+                f"Hour: {last_hour:02d}:00 | 🕐 {now_str}"
+            )
+        if status == "ok" and prev_status in ("low", "offline"):
+            send_telegram(
+                f"✅ <b>{PLANT_NAME} — RECOVERED</b>\n"
+                f"System is back within normal range.\n"
+                f"Total today: <b>{total:.1f} kWh</b> (as of {last_hour:02d}:00)\n"
+                f"🕐 {now_str}"
+            )
+        if not alerts["pace_low"] and not alerts["total_low"] and status == "ok":
+            print(f"  ✅ All checks passed — no alert needed")
+
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(STATE_FILE, "w") as f:
+        json.dump({"last_status": status, "last_checked": now_str}, f, indent=2)
+
+
+# =============================================================================
+# Main
+# =============================================================================
+
+def main():
+    print(f"🔄 Processing Sunsynk: {PLANT_NAME}")
+    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    current = load_json(SNAPSHOT)
+    if not current:
+        print(f"❌ Snapshot not found: {SNAPSHOT}")
+        sys.exit(1)
+
+    prev    = load_json(PREV_SNAP)
+    now     = datetime.now(SAST)
+    month   = now.month
+    today   = now.strftime("%Y-%m-%d")
+    sunrise, sunset = solar_window(month)
+
+    total     = current["total_kwh"]
+    last_hour = current["hour"]
+
+    print(f"  📅 Date:      {today}")
+    print(f"  ⚡ Total kWh: {total}")
+    print(f"  🕐 Hour:      {last_hour:02d}:00")
+    if prev:
+        print(f"  📦 Prev snap: {prev.get('timestamp','?')} → {prev.get('total_kwh','?')} kWh")
+
+    # Build hourly data using Sunsynk snapshot deltas
+    hourly = build_hourly(current, prev, today)
+    
+    # Fetch irradiation
+    print(f"🌤️  Fetching irradiation data...")
+    irradiation = fetch_irradiation(today)
+    
+    # Load and update history
+    print(f"📚 Loading historical data...")
+    history = load_history()
+    
+    # Add today's data to history
+    history[today] = {
+        "total_kwh": total,
+        "hourly": hourly,
+        "irradiation": irradiation,
+        "last_updated": now.strftime("%Y-%m-%d %H:%M SAST"),
+        "last_hour": last_hour,
+    }
+    
+    save_history(history)
+    
+    # Calculate 30-day stats
+    print(f"📊 Calculating 30-day statistics...")
+    stats = calculate_30day_stats(history)
+
+    status, alerts, debug = determine_status(total, last_hour, month, stats)
+
+    print(f"  🌅 Solar window:    {sunrise:.1f}h – {sunset:.1f}h")
+    print(f"  📈 30-day avg:      {stats['daily_avg']:.1f} kWh  (min: {stats['daily_min']:.1f}, max: {stats['daily_max']:.1f})")
+    print(f"  📉 Sample days:     {stats['sample_days']}")
+    print(f"  🎯 Expected by now: {debug.get('expected_by_now', 0.0):.1f} kWh")
+    print(f"  📊 Projected total: {debug.get('projected_total', 0.0):.1f} kWh")
+    print(f"  🚦 Status:          {status.upper()}")
+
+    send_alerts(status, alerts, total, last_hour, debug)
+
+    output = {
+        "plant":        PLANT_NAME,
+        "last_updated": now.strftime("%Y-%m-%d %H:%M SAST"),
+        "date":         today,
+        "total_kwh":    total,
+        "last_hour":    last_hour,
+        "status":       status,
+        "alerts":       alerts,
+        
+        # Current day data
+        "today": {
+            "hourly_pv": hourly,
+            "irradiation": irradiation,
+        },
+        
+        # 30-day statistics
+        "stats_30day": stats,
+        
+        # Historical data
+        "history": history,
+        
+        "thresholds": {
+            "expected_daily_kwh": DAILY_EXPECTED_KWH,
+            "low_day_kwh":        stats.get("daily_min", DAILY_LOW_KWH),
+            "pace_threshold_pct": PACE_THRESHOLD_PCT,
+            "solar_window": {
+                "sunrise": round(sunrise, 2),
+                "sunset":  round(sunset,  2),
+            },
+        },
+        "debug": debug,
+    }
+
+    with open(OUTPUT_FILE, "w") as f:
+        json.dump(output, f, indent=2)
+    print(f"✅ Saved: {OUTPUT_FILE}")
+    print("✅ Done!")
+
+
+if __name__ == "__main__":
+    main()
