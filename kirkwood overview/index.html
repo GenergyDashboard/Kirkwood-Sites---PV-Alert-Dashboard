@@ -219,6 +219,26 @@
             color: #94a3b8;
         }
 
+        .system-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 8px;
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #fca5a5;
+        }
+
         @media (max-width: 768px) {
             .fleet-total {
                 font-size: 3.5rem;
@@ -267,27 +287,31 @@
     </div>
 
     <script>
-        // Define all Kirkwood sites
+        // Define all Kirkwood sites with ABSOLUTE paths for GitHub Pages
         const kirkwoodSites = [
             {
                 name: "Addo Spar",
-                dataUrl: "../addo-spar/data/processed.json",
-                dashboardUrl: "../addo-spar/"
-            },
-            {
-                name: "Kirkwood Spar",
-                dataUrl: "../kirkwood-spar/data/processed.json",
-                dashboardUrl: "../kirkwood-spar/"
+                dataUrl: "/Kirkwood-Sites---PV-Alert-Dashboard/addo-spar/data/processed.json",
+                dashboardUrl: "/Kirkwood-Sites---PV-Alert-Dashboard/addo-spar/",
+                system: "FusionSolar"
             },
             {
                 name: "Kirkwood FNB",
-                dataUrl: "../kirkwood-fnb/data/processed.json",
-                dashboardUrl: "../kirkwood-fnb/"
+                dataUrl: "/Kirkwood-Sites---PV-Alert-Dashboard/kirkwood-fnb/data/processed.json",
+                dashboardUrl: "/Kirkwood-Sites---PV-Alert-Dashboard/kirkwood-fnb/",
+                system: "FusionSolar"
+            },
+            {
+                name: "Kirkwood Spar",
+                dataUrl: "/Kirkwood-Sites---PV-Alert-Dashboard/kirkwood-spar/data/processed.json",
+                dashboardUrl: "/Kirkwood-Sites---PV-Alert-Dashboard/kirkwood-spar/",
+                system: "FusionSolar"
             },
             {
                 name: "Kirkwood Tops",
-                dataUrl: "../kirkwood-tops/data/processed.json",
-                dashboardUrl: "../kirkwood-tops/"
+                dataUrl: "/Kirkwood-Sites---PV-Alert-Dashboard/kirkwood-tops/data/processed.json",
+                dashboardUrl: "/Kirkwood-Sites---PV-Alert-Dashboard/kirkwood-tops/",
+                system: "Sunsynk"
             }
         ];
 
@@ -301,19 +325,25 @@
 
         async function loadAllSites() {
             try {
+                console.log('Starting to load all sites...');
+                
                 // Fetch all sites in parallel
                 const promises = kirkwoodSites.map(async site => {
                     try {
+                        console.log(`Fetching ${site.name} from ${site.dataUrl}`);
                         const response = await fetch(site.dataUrl);
-                        if (!response.ok) throw new Error('Failed to fetch');
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
                         const data = await response.json();
+                        console.log(`✓ Loaded ${site.name}:`, data);
                         return {
                             ...site,
                             ...data,
                             loaded: true
                         };
                     } catch (error) {
-                        console.error(`Error loading ${site.name}:`, error);
+                        console.error(`✗ Error loading ${site.name}:`, error);
                         return {
                             ...site,
                             loaded: false,
@@ -325,9 +355,16 @@
                 });
 
                 allSitesData = await Promise.all(promises);
+                console.log('All sites loaded:', allSitesData);
                 updateDashboard();
             } catch (error) {
-                console.error('Error loading sites:', error);
+                console.error('Fatal error loading sites:', error);
+                document.getElementById('sitesContainer').innerHTML = 
+                    `<div class="error-message">
+                        <strong>Error loading site data</strong><br>
+                        ${error.message}<br>
+                        Check browser console (F12) for details.
+                    </div>`;
             }
         }
 
@@ -381,7 +418,10 @@
 
             card.innerHTML = `
                 <div class="site-header">
-                    <div class="site-name">${site.name}</div>
+                    <div>
+                        <div class="site-name">${site.name}</div>
+                        <div class="system-badge">${site.system}</div>
+                    </div>
                     <div class="status-indicator ${site.status}"></div>
                 </div>
                 <div class="site-production">${(site.total_kwh || 0).toFixed(1)} <span style="font-size: 1.5rem; color: #94a3b8;">kWh</span></div>
