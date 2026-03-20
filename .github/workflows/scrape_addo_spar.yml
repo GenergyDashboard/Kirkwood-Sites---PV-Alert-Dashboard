@@ -2,9 +2,11 @@ name: Scrape and Process Addo Spar Data
 
 on:
   schedule:
-    # Run every hour at 5 minutes past the hour
     - cron: '5 * * * *'
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   scrape-and-process:
