@@ -1,17 +1,7 @@
 """
-download_plant_data.py
+download_plant_data_kirkwood_spar.py
 
-Downloads the daily plant report from FusionSolar for a configured site.
-Site name, credentials, and paths are all configurable via environment
-variables or the SITE_CONFIG dict below.
-
-Environment variables (set as secrets):
-  FUSIONSOLAR_USERNAME  - your FusionSolar username
-  FUSIONSOLAR_PASSWORD  - your FusionSolar password
-
-Optional overrides:
-  PLANT_NAME            - override the plant name to search for
-  OUTPUT_FILE           - override the output xlsx path (default: data/raw_report.xlsx)
+Downloads the daily plant report from FusionSolar for Kirkwood Spar.
 """
 
 import time
@@ -23,21 +13,14 @@ import socket
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-# =============================================================================
-# ✏️  SITE CONFIGURATION — Edit this section to change the monitored site
-# =============================================================================
 SITE_CONFIG = {
-    "plant_name": os.environ.get("PLANT_NAME", "Addo Spar"),
-    # Output path is relative to this script's directory
+    "plant_name": os.environ.get("PLANT_NAME", "Kirkwood Spar"),
     "output_file": os.environ.get(
         "OUTPUT_FILE",
         str(Path(__file__).parent / "data" / "raw_report.xlsx")
     ),
 }
 
-# =============================================================================
-# FusionSolar URLs (rarely need changing)
-# =============================================================================
 FUSIONSOLAR_HOST = "intl.fusionsolar.huawei.com"
 FUSIONSOLAR_BASE = f"https://{FUSIONSOLAR_HOST}"
 LOGIN_URL        = FUSIONSOLAR_BASE
@@ -50,12 +33,7 @@ PORTAL_HOME      = (
 FALLBACK_IP = "119.8.160.213"
 
 
-# =============================================================================
-# Helpers
-# =============================================================================
-
 def fix_dns_resolution():
-    """Ensure intl.fusionsolar.huawei.com resolves — patch /etc/hosts if needed."""
     print(f"🔍 Checking DNS for {FUSIONSOLAR_HOST}...")
     try:
         ip = socket.gethostbyname(FUSIONSOLAR_HOST)
@@ -121,10 +99,7 @@ def random_mouse_movement(page):
     try:
         vs = page.viewport_size
         if vs:
-            page.mouse.move(
-                random.randint(100, vs["width"] - 100),
-                random.randint(100, vs["height"] - 100),
-            )
+            page.mouse.move(random.randint(100, vs["width"]-100), random.randint(100, vs["height"]-100))
     except Exception:
         pass
 
@@ -135,15 +110,14 @@ def type_human_like(field, text):
 
 
 def find_search_field(page):
-    """Try multiple strategies to locate the plant-search input."""
     strategies = [
-        ("role textbox 'Plant name'",    lambda: page.get_by_role("textbox", name="Plant name")),
-        ("placeholder 'Plant name'",     lambda: page.locator("input[placeholder*='Plant name']").first),
-        ("placeholder 'plant' (lower)",  lambda: page.locator("input[placeholder*='plant']").first),
-        ("placeholder 'search' (ci)",    lambda: page.locator("input[placeholder*='search' i]").first),
-        ("role searchbox",               lambda: page.get_by_role("searchbox").first),
-        ("visible text input",           lambda: page.locator("input[type='text']:visible").first),
-        ("any visible input",            lambda: page.locator("input:visible").first),
+        ("role textbox 'Plant name'",   lambda: page.get_by_role("textbox", name="Plant name")),
+        ("placeholder 'Plant name'",    lambda: page.locator("input[placeholder*='Plant name']").first),
+        ("placeholder 'plant' (lower)", lambda: page.locator("input[placeholder*='plant']").first),
+        ("placeholder 'search' (ci)",   lambda: page.locator("input[placeholder*='search' i]").first),
+        ("role searchbox",              lambda: page.get_by_role("searchbox").first),
+        ("visible text input",          lambda: page.locator("input[type='text']:visible").first),
+        ("any visible input",           lambda: page.locator("input:visible").first),
     ]
     for name, strategy in strategies:
         try:
@@ -156,52 +130,36 @@ def find_search_field(page):
     return None
 
 
-# =============================================================================
-# Main download function
-# =============================================================================
-
 def download_plant_data():
     plant_name  = SITE_CONFIG["plant_name"]
     output_file = Path(SITE_CONFIG["output_file"])
 
     print(f"🚀 Starting download for plant: '{plant_name}'")
     print(f"📁 Output file: {output_file}")
-
     fix_dns_resolution()
 
     username = os.environ.get("FUSIONSOLAR_USERNAME")
     password = os.environ.get("FUSIONSOLAR_PASSWORD")
     if not username or not password:
-        print("❌ FUSIONSOLAR_USERNAME and FUSIONSOLAR_PASSWORD must be set as environment variables / secrets")
+        print("❌ FUSIONSOLAR_USERNAME and FUSIONSOLAR_PASSWORD must be set")
         sys.exit(1)
     print(f"🔐 Username: {username[:4]}***")
-
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     with sync_playwright() as playwright:
         print("🌐 Launching browser (headless)...")
         browser = playwright.chromium.launch(
             headless=True,
-            args=["--no-sandbox", "--disable-setuid-sandbox",
-                  "--disable-blink-features=AutomationControlled"],
+            args=["--no-sandbox","--disable-setuid-sandbox","--disable-blink-features=AutomationControlled"],
         )
         context = browser.new_context(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/120.0.0.0 Safari/537.36"
-            ),
-            viewport={"width": 1920, "height": 1080},
-            locale="en-US",
-            timezone_id="Africa/Johannesburg",
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            viewport={"width":1920,"height":1080}, locale="en-US", timezone_id="Africa/Johannesburg",
         )
-        context.add_init_script(
-            "Object.defineProperty(navigator, 'webdriver', { get: () => undefined });"
-        )
+        context.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>undefined});")
         page = context.new_page()
 
         try:
-            # ── Step 1: Login ──────────────────────────────────────────────
             print("📱 Step 1: Navigating to FusionSolar login...")
             page.goto(LOGIN_URL, wait_until="networkidle", timeout=60000)
             human_delay(5, 8)
@@ -217,34 +175,23 @@ def download_plant_data():
             human_delay(7, 10)
             print(f"  📍 After login: {page.url[:80]}")
 
-            # ── Step 2: Portal ─────────────────────────────────────────────
             print("🏠 Step 3: Navigating to portal...")
             page.goto(PORTAL_HOME, wait_until="networkidle", timeout=60000)
             human_delay(5, 8)
             random_mouse_movement(page)
 
-            # ── Dismiss any modal dialogs before interacting ───────────────
             print("🔔 Checking for modal dialogs...")
             modal_dismissed = False
-            modal_selectors = [
-                # Close button inside dpdesign modal (the one seen in logs)
+            for sel in [
                 ".dpdesign-modal-wrap .dpdesign-modal-close",
                 ".dpdesign-modal-wrap button[aria-label='Close']",
                 ".dpdesign-modal-wrap .dpdesign-icon-close",
-                # Generic ant-design / common close patterns
-                ".ant-modal-close",
-                ".ant-modal-close-x",
-                "button[aria-label='Close']",
-                ".modal-close",
-                # Any visible × / close button
-                "button:has-text('×')",
-                "button:has-text('✕')",
-                "button:has-text('Close')",
-                "button:has-text('OK')",
-                "button:has-text('Got it')",
-                "button:has-text('Confirm')",
-            ]
-            for sel in modal_selectors:
+                ".ant-modal-close", ".ant-modal-close-x",
+                "button[aria-label='Close']", ".modal-close",
+                "button:has-text('×')", "button:has-text('✕')",
+                "button:has-text('Close')", "button:has-text('OK')",
+                "button:has-text('Got it')", "button:has-text('Confirm')",
+            ]:
                 try:
                     btn = page.locator(sel).first
                     if btn.is_visible(timeout=2000):
@@ -256,7 +203,6 @@ def download_plant_data():
                 except Exception:
                     continue
             if not modal_dismissed:
-                # Try pressing Escape as a last resort
                 try:
                     page.keyboard.press("Escape")
                     human_delay(0.5, 1)
@@ -264,18 +210,14 @@ def download_plant_data():
                 except Exception:
                     pass
 
-            # ── Step 3: Search for plant ───────────────────────────────────
             print(f"🔎 Step 4: Searching for '{plant_name}'...")
             search_field = find_search_field(page)
             if not search_field:
                 raise RuntimeError("Could not find a search/input field on the portal page")
-
             search_field.click()
             human_delay(1, 2)
             type_human_like(search_field, plant_name)
             human_delay(2, 3)
-
-            # Click Search button or press Enter
             try:
                 page.get_by_role("button", name="Search").click()
             except Exception:
@@ -283,34 +225,28 @@ def download_plant_data():
                     page.locator("button:has-text('Search')").first.click()
                 except Exception:
                     search_field.press("Enter")
-
             page.wait_for_load_state("networkidle", timeout=30000)
             human_delay(5, 8)
 
-            # ── Step 4: Open plant page ────────────────────────────────────
             print(f"🏢 Step 5: Selecting '{plant_name}'...")
             try:
                 page.get_by_role("link", name=plant_name).click()
             except Exception:
                 page.get_by_text(plant_name).first.click()
-
             page.wait_for_load_state("networkidle", timeout=60000)
             human_delay(5, 8)
             random_mouse_movement(page)
 
-            # ── Step 5: Report Management ──────────────────────────────────
             print("📊 Step 6: Opening Report Management...")
             page.get_by_text("Report Management").click()
             page.wait_for_load_state("networkidle", timeout=60000)
             human_delay(5, 8)
             random_mouse_movement(page)
 
-            # ── Step 6: Export ─────────────────────────────────────────────
             print("📤 Step 7: Clicking Export...")
             page.get_by_role("button", name="Export").click()
             human_delay(5, 8)
 
-            # ── Step 7: Download ───────────────────────────────────────────
             print("💾 Step 8: Downloading file...")
             with page.expect_download(timeout=30000) as dl_info:
                 page.get_by_title("Download").first.click()
@@ -318,13 +254,11 @@ def download_plant_data():
             download.save_as(output_file)
             print(f"✅ Downloaded to: {output_file}")
 
-            # ── Step 8: Close dialog ───────────────────────────────────────
             try:
                 page.get_by_role("button", name="Close").click()
             except Exception:
                 pass
             human_delay(2, 4)
-
             print("✅ Download complete!")
             return str(output_file)
 
@@ -337,7 +271,6 @@ def download_plant_data():
             except Exception:
                 pass
             raise
-
         finally:
             human_delay(2, 3)
             context.close()
