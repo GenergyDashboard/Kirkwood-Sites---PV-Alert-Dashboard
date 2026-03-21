@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0f1a;
+            background: #0f1419;
             color: #e2e8f0;
             min-height: 100vh;
             padding: 20px;
@@ -43,7 +43,7 @@
         }
 
         .fleet-summary {
-            background: linear-gradient(135deg, #1a1f2e 0%, #232938 100%);
+            background: linear-gradient(135deg, #1a2332 0%, #1e2936 100%);
             border-radius: 16px;
             padding: 30px;
             margin-bottom: 20px;
@@ -60,7 +60,7 @@
         }
 
         .fleet-label {
-            color: #94a3b8;
+            color: #9ca3af;
             font-size: 0.85rem;
             margin-bottom: 20px;
         }
@@ -75,7 +75,7 @@
         }
 
         .fleet-status-label {
-            color: #94a3b8;
+            color: #9ca3af;
             font-size: 0.85rem;
         }
 
@@ -111,7 +111,7 @@
         }
 
         .site-card {
-            background: linear-gradient(135deg, #1a1f2e 0%, #232938 100%);
+            background: linear-gradient(135deg, #1a2332 0%, #1e2936 100%);
             border-radius: 14px;
             padding: 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
@@ -119,7 +119,6 @@
             cursor: pointer;
             border: 2px solid rgba(255, 255, 255, 0.1);
             overflow: hidden;
-            position: relative;
         }
 
         .site-card:hover {
@@ -182,7 +181,7 @@
         .site-status.offline { color: #ef4444; }
 
         .site-chart-wrapper {
-            width: 180px;
+            width: 200px;
             height: 100px;
             position: relative;
         }
@@ -244,15 +243,6 @@
                 margin-top: 10px;
             }
         }
-
-        @media (max-width: 768px) {
-            .fleet-total {
-                font-size: 3rem;
-            }
-            .site-production {
-                font-size: 1.8rem;
-            }
-        }
     </style>
 </head>
 <body>
@@ -263,7 +253,7 @@
         </div>
 
         <div class="fleet-summary">
-            <div class="fleet-total" id="fleetTotal">0.0 <span style="font-size: 1.5rem; color: #94a3b8;">kWh</span></div>
+            <div class="fleet-total" id="fleetTotal">0.0 <span style="font-size: 1.5rem; color: #9ca3af;">kWh</span></div>
             <div class="fleet-label">Total Generation Today</div>
             <div class="fleet-status-bar">
                 <div class="fleet-status-label">Fleet Status</div>
@@ -328,7 +318,9 @@
                             loaded: false,
                             status: 'offline',
                             total_kwh: 0,
-                            last_updated: 'N/A'
+                            last_updated: 'N/A',
+                            hourly_pv: new Array(24).fill(0),
+                            stats_30day: {}
                         };
                     }
                 });
@@ -345,7 +337,7 @@
             const sitesOk = allSitesData.filter(s => s.status === 'ok').length;
 
             document.getElementById('fleetTotal').innerHTML = 
-                `${fleetTotal.toFixed(1)} <span style="font-size: 1.5rem; color: #94a3b8;">kWh</span>`;
+                `${fleetTotal.toFixed(1)} <span style="font-size: 1.5rem; color: #9ca3af;">kWh</span>`;
             
             document.getElementById('statusCount').textContent = `${sitesOk} OK`;
 
@@ -385,7 +377,7 @@
                             <div class="site-name">${site.name}</div>
                             <div class="status-indicator ${site.status}"></div>
                         </div>
-                        <div class="site-production">${(site.total_kwh || 0).toFixed(1)} <span style="font-size: 1rem; color: #94a3b8;">kWh</span></div>
+                        <div class="site-production">${(site.total_kwh || 0).toFixed(1)} <span style="font-size: 1rem; color: #9ca3af;">kWh</span></div>
                         <div class="site-status ${site.status}">System ${site.status.toUpperCase()}</div>
                     </div>
                     <div class="site-chart-wrapper">
@@ -413,6 +405,7 @@
                 siteCharts[chartId].destroy();
             }
 
+            // Match the individual site chart style
             siteCharts[chartId] = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -421,22 +414,22 @@
                         {
                             label: '30-Day Avg',
                             data: stats.hourly_avg || new Array(24).fill(0),
-                            borderColor: 'rgba(148, 163, 184, 0.6)',
+                            borderColor: 'rgba(96, 165, 250, 0.6)',
                             borderWidth: 1.5,
                             borderDash: [4, 2],
                             fill: false,
                             pointRadius: 0,
-                            tension: 0.4
+                            tension: 0
                         },
                         {
                             label: 'Today',
                             data: hourlyPv,
                             borderColor: '#22c55e',
-                            backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                            borderWidth: 2,
-                            fill: true,
+                            backgroundColor: 'transparent',
+                            borderWidth: 1.5,
+                            fill: false,
                             pointRadius: 0,
-                            tension: 0.4
+                            tension: 0
                         }
                     ]
                 },
@@ -458,24 +451,24 @@
                     scales: {
                         x: {
                             grid: {
-                                color: 'rgba(148, 163, 184, 0.1)',
+                                color: 'rgba(148, 163, 184, 0.08)',
                                 drawBorder: false
                             },
                             ticks: {
-                                color: '#64748b',
-                                font: { size: 8 },
+                                color: '#4b5563',
+                                font: { size: 7 },
                                 maxTicksLimit: 6
                             }
                         },
                         y: {
                             beginAtZero: true,
                             grid: {
-                                color: 'rgba(148, 163, 184, 0.1)',
+                                color: 'rgba(148, 163, 184, 0.08)',
                                 drawBorder: false
                             },
                             ticks: {
-                                color: '#64748b',
-                                font: { size: 8 },
+                                color: '#4b5563',
+                                font: { size: 7 },
                                 maxTicksLimit: 4
                             }
                         }
