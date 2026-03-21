@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Addo Spar - PV Monitoring Dashboard</title>
+    <title>Kirkwood FNB - PV Monitoring Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
@@ -138,6 +138,63 @@
             height: 450px;
         }
 
+        .more-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .more-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 20, 25, 0.4);
+            color: #60a5fa;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .more-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+
+        .more-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 6px;
+            background: #1a2332;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            min-width: 170px;
+            overflow: hidden;
+        }
+
+        .more-menu.show { display: block; }
+
+        .more-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 18px;
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .more-menu button:hover {
+            background: rgba(59, 130, 246, 0.15);
+            color: #fff;
+        }
+
         .loading {
             text-align: center;
             padding: 100px;
@@ -155,7 +212,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 id="siteName">Addo Spar</h1>
+            <h1 id="siteName">Kirkwood FNB</h1>
             <div class="last-updated" id="lastUpdated">Loading...</div>
         </div>
 
@@ -186,8 +243,14 @@
             <div class="chart-header">
                 <div class="chart-title">Hourly Generation</div>
                 <div class="chart-controls">
-                    <button class="toggle-btn active" onclick="switchChartMode('today')">Today</button>
-                    <button class="toggle-btn" onclick="switchChartMode('average')">30-Day Average</button>
+                    <button class="toggle-btn active" onclick="switchChartMode('today', this)">Today</button>
+                    <button class="toggle-btn" onclick="switchChartMode('average', this)">30-Day Average</button>
+                    <div class="more-dropdown">
+                        <button class="more-btn" onclick="toggleMore()">More &#9660;</button>
+                        <div class="more-menu" id="moreMenu">
+                            <button onclick="switchChartMode('history', this); closeMore()">Daily History</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="chart-container">
@@ -243,11 +306,14 @@
             
             document.getElementById('avgKwh').textContent = avgKwh.toFixed(1) + ' kWh';
             
-            const lastHour = dashboardData.last_hour || '--';
-            const hourlyPv = dashboardData.hourly_pv || [];
-            const lastHourValue = lastHour !== '--' ? (hourlyPv[parseInt(lastHour)] || 0) : 0;
+            const today = dashboardData.today || {};
+            const hourlyPv = today.hourly_pv || dashboardData.hourly_pv || [];
+            const lastHour = dashboardData.last_hour;
+            const lastHourStr = (lastHour !== undefined && lastHour !== null) ? lastHour : '--';
+            const lastHourValue = lastHourStr !== '--' ? (hourlyPv[parseInt(lastHourStr)] || 0) : 0;
             
-            document.getElementById('lastHour').textContent = lastHour + ':00';
+            document.getElementById('lastHour').textContent = 
+                (lastHourStr !== '--' ? String(lastHourStr).padStart(2, '0') : '--') + ':00';
             document.getElementById('lastHourKwh').textContent = lastHourValue.toFixed(1) + ' kW generated';
 
             document.getElementById('status').textContent = status.toUpperCase();
@@ -268,8 +334,9 @@
 
         function updateChart() {
             const hours = Array.from({length: 24}, (_, i) => i);
-            const hourlyPv = dashboardData.hourly_pv || new Array(24).fill(0);
-            const irradiation = dashboardData.irradiation || new Array(24).fill(0);
+            const today = dashboardData.today || {};
+            const hourlyPv = today.hourly_pv || dashboardData.hourly_pv || new Array(24).fill(0);
+            const irradiation = today.irradiation || dashboardData.irradiation || new Array(24).fill(0);
             const stats = dashboardData.stats_30day || {};
             
             const ctx = document.getElementById('hourlyChart').getContext('2d');
@@ -278,190 +345,254 @@
                 hourlyChart.destroy();
             }
 
-            const chartData = currentChartMode === 'today' ? {
-                labels: hours.map(h => (h < 10 ? '0' : '') + h + ':00'),
-                datasets: [
-                    {
-                        type: 'line',
-                        label: 'Irradiation (W/m²)',
-                        data: irradiation,
-                        backgroundColor: 'rgba(133, 77, 14, 0.6)',
-                        borderColor: 'rgba(202, 138, 4, 0.8)',
-                        borderWidth: 1,
-                        fill: true,
-                        yAxisID: 'y1',
-                        pointRadius: 0,
-                        order: 3
-                    },
-                    {
-                        type: 'line',
-                        label: 'Predicted (Monthly Avg)',
-                        data: stats.hourly_avg || new Array(24).fill(0),
-                        borderColor: '#9ca3af',
-                        borderWidth: 2,
-                        borderDash: [5, 3],
-                        fill: false,
-                        pointRadius: 0,
-                        order: 2
-                    },
-                    {
-                        type: 'bar',
-                        label: 'PV Generation (kW)',
-                        data: hourlyPv,
-                        backgroundColor: '#22c55e',
-                        borderColor: '#22c55e',
-                        borderWidth: 0,
-                        barPercentage: 0.9,
-                        categoryPercentage: 0.95,
-                        order: 1
-                    }
-                ]
-            } : {
-                labels: hours.map(h => (h < 10 ? '0' : '') + h + ':00'),
-                datasets: [
-                    {
-                        type: 'line',
-                        label: 'Min-Max Range',
-                        data: stats.hourly_min || new Array(24).fill(0),
-                        backgroundColor: 'rgba(75, 85, 99, 0.15)',
-                        borderColor: 'rgba(75, 85, 99, 0.3)',
-                        borderWidth: 1,
-                        fill: '+1',
-                        pointRadius: 0,
-                        order: 5
-                    },
-                    {
-                        type: 'line',
-                        label: '',
-                        data: stats.hourly_max || new Array(24).fill(0),
-                        backgroundColor: 'transparent',
-                        borderColor: 'rgba(75, 85, 99, 0.3)',
-                        borderWidth: 1,
-                        pointRadius: 0,
-                        order: 5
-                    },
-                    {
-                        type: 'line',
-                        label: 'P10-P90',
-                        data: stats.hourly_p10 || new Array(24).fill(0),
-                        backgroundColor: 'rgba(107, 114, 128, 0.2)',
-                        borderColor: 'rgba(107, 114, 128, 0.4)',
-                        borderWidth: 1,
-                        fill: '+1',
-                        pointRadius: 0,
-                        order: 4
-                    },
-                    {
-                        type: 'line',
-                        label: '',
-                        data: stats.hourly_p90 || new Array(24).fill(0),
-                        backgroundColor: 'transparent',
-                        borderColor: 'rgba(107, 114, 128, 0.4)',
-                        borderWidth: 1,
-                        pointRadius: 0,
-                        order: 4
-                    },
-                    {
-                        type: 'line',
-                        label: 'P25-P75',
-                        data: stats.hourly_p25 || new Array(24).fill(0),
-                        backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                        borderColor: 'rgba(34, 197, 94, 0.5)',
-                        borderWidth: 1.5,
-                        fill: '+1',
-                        pointRadius: 0,
-                        order: 3
-                    },
-                    {
-                        type: 'line',
-                        label: '',
-                        data: stats.hourly_p75 || new Array(24).fill(0),
-                        backgroundColor: 'transparent',
-                        borderColor: 'rgba(34, 197, 94, 0.5)',
-                        borderWidth: 1.5,
-                        pointRadius: 0,
-                        order: 3
-                    },
-                    {
-                        type: 'line',
-                        label: 'Median (P50)',
-                        data: stats.hourly_avg || new Array(24).fill(0),
-                        borderColor: '#22c55e',
-                        borderWidth: 2.5,
-                        borderDash: [8, 4],
-                        fill: false,
-                        pointRadius: 0,
-                        order: 1
-                    }
-                ]
-            };
+            const labels = hours.map(h => (h < 10 ? '0' : '') + h + ':00');
+
+            let chartData, chartOptions;
+
+            if (currentChartMode === 'today') {
+                chartData = {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Irradiation (W/m²)',
+                            data: irradiation,
+                            backgroundColor: 'rgba(133, 77, 14, 0.6)',
+                            borderColor: 'rgba(202, 138, 4, 0.8)',
+                            borderWidth: 1,
+                            fill: true,
+                            yAxisID: 'y1',
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 3
+                        },
+                        {
+                            type: 'line',
+                            label: 'Predicted (Monthly Avg)',
+                            data: stats.hourly_avg || new Array(24).fill(0),
+                            borderColor: 'rgba(96, 165, 250, 0.7)',
+                            borderWidth: 2,
+                            borderDash: [6, 4],
+                            fill: false,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 2
+                        },
+                        {
+                            type: 'bar',
+                            label: 'PV Generation (kW)',
+                            data: hourlyPv,
+                            backgroundColor: '#22c55e',
+                            borderColor: '#22c55e',
+                            borderWidth: 0,
+                            barPercentage: 0.9,
+                            categoryPercentage: 0.95,
+                            order: 1
+                        }
+                    ]
+                };
+                chartOptions = buildChartOptions(true);
+
+            } else if (currentChartMode === 'average') {
+                chartData = {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Min-Max Range',
+                            data: stats.hourly_min || new Array(24).fill(0),
+                            backgroundColor: 'rgba(75, 85, 99, 0.15)',
+                            borderColor: 'rgba(75, 85, 99, 0.3)',
+                            borderWidth: 1,
+                            fill: '+1',
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 5
+                        },
+                        {
+                            type: 'line',
+                            label: '',
+                            data: stats.hourly_max || new Array(24).fill(0),
+                            backgroundColor: 'transparent',
+                            borderColor: 'rgba(75, 85, 99, 0.3)',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 5
+                        },
+                        {
+                            type: 'line',
+                            label: 'P10-P90',
+                            data: stats.hourly_p10 || new Array(24).fill(0),
+                            backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                            borderColor: 'rgba(107, 114, 128, 0.4)',
+                            borderWidth: 1,
+                            fill: '+1',
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 4
+                        },
+                        {
+                            type: 'line',
+                            label: '',
+                            data: stats.hourly_p90 || new Array(24).fill(0),
+                            backgroundColor: 'transparent',
+                            borderColor: 'rgba(107, 114, 128, 0.4)',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 4
+                        },
+                        {
+                            type: 'line',
+                            label: 'P25-P75',
+                            data: stats.hourly_p25 || new Array(24).fill(0),
+                            backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                            borderColor: 'rgba(34, 197, 94, 0.5)',
+                            borderWidth: 1.5,
+                            fill: '+1',
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 3
+                        },
+                        {
+                            type: 'line',
+                            label: '',
+                            data: stats.hourly_p75 || new Array(24).fill(0),
+                            backgroundColor: 'transparent',
+                            borderColor: 'rgba(34, 197, 94, 0.5)',
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 3
+                        },
+                        {
+                            type: 'line',
+                            label: 'Median (P50)',
+                            data: stats.hourly_avg || new Array(24).fill(0),
+                            borderColor: '#22c55e',
+                            borderWidth: 2.5,
+                            borderDash: [8, 4],
+                            fill: false,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 1
+                        }
+                    ]
+                };
+                chartOptions = buildChartOptions(false);
+
+            } else if (currentChartMode === 'history') {
+                const history = dashboardData.history || {};
+                const dates = Object.keys(history).sort();
+                const totals = dates.map(d => history[d].total_kwh || 0);
+                const dailyAvg = stats.daily_avg || 0;
+
+                chartData = {
+                    labels: dates.map(d => {
+                        const dt = new Date(d + 'T00:00:00');
+                        return dt.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' });
+                    }),
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: '30-Day Avg',
+                            data: new Array(dates.length).fill(dailyAvg),
+                            borderColor: 'rgba(96, 165, 250, 0.6)',
+                            borderWidth: 2,
+                            borderDash: [6, 4],
+                            fill: false,
+                            pointRadius: 0,
+                            order: 1
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Daily Total (kWh)',
+                            data: totals,
+                            backgroundColor: totals.map(v => v < dailyAvg * 0.5 ? '#fb923c' : '#22c55e'),
+                            borderWidth: 0,
+                            barPercentage: 0.8,
+                            categoryPercentage: 0.9,
+                            order: 2
+                        }
+                    ]
+                };
+                chartOptions = buildChartOptions(false, true);
+            }
 
             hourlyChart = new Chart(ctx, {
                 type: 'bar',
                 data: chartData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            align: 'center',
-                            labels: {
-                                color: '#9ca3af',
-                                font: { size: 11 },
-                                usePointStyle: true,
-                                padding: 15,
-                                filter: (item) => item.text !== ''
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 20, 25, 0.95)',
-                            titleColor: '#e2e8f0',
-                            bodyColor: '#cbd5e1',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            borderWidth: 1,
-                            padding: 12,
-                            displayColors: true
+                options: chartOptions
+            });
+        }
+
+        function buildChartOptions(showIrradAxis, isHistory = false) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'center',
+                        labels: {
+                            color: '#9ca3af',
+                            font: { size: 11 },
+                            usePointStyle: true,
+                            padding: 15,
+                            filter: (item) => item.text !== ''
                         }
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.05)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: '#6b7280',
-                                font: { size: 10 }
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 20, 25, 0.95)',
+                        titleColor: '#e2e8f0',
+                        bodyColor: '#cbd5e1',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: { size: 10 },
+                            maxRotation: isHistory ? 45 : 0
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        position: 'left',
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: { size: 10 },
+                            callback: function(value) {
+                                return value.toFixed(0) + (isHistory ? '' : ' kW');
                             }
                         },
-                        y: {
-                            beginAtZero: true,
-                            position: 'left',
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.05)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: '#6b7280',
-                                font: { size: 10 },
-                                callback: function(value) {
-                                    return value.toFixed(0) + ' kW';
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Power (kW)',
-                                color: '#9ca3af',
-                                font: { size: 11 }
-                            }
-                        },
-                        y1: currentChartMode === 'today' ? {
+                        title: {
+                            display: true,
+                            text: isHistory ? 'Energy (kWh)' : 'Power (kW)',
+                            color: '#9ca3af',
+                            font: { size: 11 }
+                        }
+                    },
+                    ...(showIrradAxis ? {
+                        y1: {
                             beginAtZero: true,
                             position: 'right',
                             grid: {
@@ -480,22 +611,36 @@
                                 color: '#ca8a04',
                                 font: { size: 11 }
                             }
-                        } : undefined
-                    }
+                        }
+                    } : {})
                 }
-            });
+            };
         }
 
-        function switchChartMode(mode) {
+        function switchChartMode(mode, btn) {
             currentChartMode = mode;
             
-            document.querySelectorAll('.toggle-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            if (btn && btn.classList.contains('toggle-btn')) {
+                btn.classList.add('active');
+            }
             
             updateChart();
         }
+
+        function toggleMore() {
+            document.getElementById('moreMenu').classList.toggle('show');
+        }
+
+        function closeMore() {
+            document.getElementById('moreMenu').classList.remove('show');
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.more-dropdown')) {
+                closeMore();
+            }
+        });
     </script>
 </body>
 </html>
