@@ -5,7 +5,7 @@ Enhanced processor for Kirkwood FNB that:
 - Stores historical daily data
 - Fetches irradiation from Open-Meteo API
 - Calculates 30-day hourly averages (bell curve baseline)
-- Calculates 30-day min/max bands
+- Calculates 30-day min/max bands and percentiles (p10/p25/p75/p90)
 - Sends Telegram alerts for underperformance
 - Produces dashboard-ready JSON
 
@@ -109,7 +109,6 @@ def fetch_irradiation(date_str: str) -> list:
         data = resp.json()
         
         irradiation = data.get("hourly", {}).get("shortwave_radiation", [])
-        # Ensure we have exactly 24 values
         while len(irradiation) < 24:
             irradiation.append(0)
         return [round(v if v else 0, 1) for v in irradiation[:24]]
@@ -172,7 +171,6 @@ def parse_report(filepath: Path) -> dict:
 # =============================================================================
 
 def load_history() -> dict:
-    """Load historical data, returns dict of {date: {data}}"""
     if not HISTORY_FILE.exists():
         return {}
     try:
@@ -184,53 +182,57 @@ def load_history() -> dict:
 
 
 def save_history(history: dict):
-    """Save historical data and prune to last HISTORY_DAYS"""
     HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
-    
-    # Prune old entries
     cutoff = (datetime.now(SAST) - timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d")
     history = {k: v for k, v in history.items() if k >= cutoff}
-    
     with open(HISTORY_FILE, "w") as f:
         json.dump(history, f, indent=2)
 
 
+def percentile(sorted_vals: list, p: float) -> float:
+    """Calculate percentile from a pre-sorted list (p in 0-100)."""
+    if not sorted_vals:
+        return 0
+    if len(sorted_vals) == 1:
+        return sorted_vals[0]
+    k = (len(sorted_vals) - 1) * (p / 100.0)
+    f = int(k)
+    c = f + 1
+    if c >= len(sorted_vals):
+        return sorted_vals[-1]
+    d = k - f
+    return sorted_vals[f] + d * (sorted_vals[c] - sorted_vals[f])
+
+
 def calculate_30day_stats(history: dict) -> dict:
-    """
-    Calculate 30-day statistics:
-    - hourly_avg: average PV for each hour [0-23] over last 30 days
-    - hourly_min: minimum PV for each hour
-    - hourly_max: maximum PV for each hour
-    - daily_min: lowest daily total
-    - daily_max: highest daily total
-    - daily_avg: average daily total
-    """
     if not history:
         return {
             "hourly_avg": [0] * 24,
             "hourly_min": [0] * 24,
             "hourly_max": [0] * 24,
+            "hourly_p10": [0] * 24,
+            "hourly_p25": [0] * 24,
+            "hourly_p75": [0] * 24,
+            "hourly_p90": [0] * 24,
             "daily_min": 0,
             "daily_max": 0,
             "daily_avg": 0,
             "sample_days": 0,
         }
     
-    # Collect all hourly values across days
-    hourly_values = [[] for _ in range(24)]  # 24 lists, one per hour
+    hourly_values = [[] for _ in range(24)]
     daily_totals = []
     
     for date, day_data in history.items():
         hourly = day_data.get("hourly", [0] * 24)
         total = day_data.get("total_kwh", 0)
         
-        if total > 0:  # Only include days with actual data
+        if total > 0:
             daily_totals.append(total)
             for hour in range(24):
                 if hour < len(hourly):
                     hourly_values[hour].append(hourly[hour])
     
-    # Calculate stats
     hourly_avg = [
         round(sum(vals) / len(vals), 2) if vals else 0
         for vals in hourly_values
@@ -244,10 +246,26 @@ def calculate_30day_stats(history: dict) -> dict:
         for vals in hourly_values
     ]
     
+    hourly_p10 = []
+    hourly_p25 = []
+    hourly_p75 = []
+    hourly_p90 = []
+    
+    for hour in range(24):
+        vals = sorted(hourly_values[hour])
+        hourly_p10.append(round(percentile(vals, 10), 2))
+        hourly_p25.append(round(percentile(vals, 25), 2))
+        hourly_p75.append(round(percentile(vals, 75), 2))
+        hourly_p90.append(round(percentile(vals, 90), 2))
+    
     return {
         "hourly_avg": hourly_avg,
         "hourly_min": hourly_min,
         "hourly_max": hourly_max,
+        "hourly_p10": hourly_p10,
+        "hourly_p25": hourly_p25,
+        "hourly_p75": hourly_p75,
+        "hourly_p90": hourly_p90,
         "daily_min": round(min(daily_totals), 1) if daily_totals else 0,
         "daily_max": round(max(daily_totals), 1) if daily_totals else 0,
         "daily_avg": round(sum(daily_totals) / len(daily_totals), 1) if daily_totals else 0,
@@ -260,16 +278,11 @@ def calculate_30day_stats(history: dict) -> dict:
 # =============================================================================
 
 def determine_status(data: dict, month: int, stats: dict) -> tuple:
-    """
-    Returns (status, alerts, debug).
-    Uses 30-day stats for smarter thresholds.
-    """
     total           = data["total_kwh"]
     hour            = data["last_hour"]
     sunrise, sunset = solar_window(month)
     alerts          = {"offline": False, "pace_low": False, "total_low": False}
 
-    # Offline
     if total < OFFLINE_THRESHOLD:
         alerts["offline"] = True
         return "offline", alerts, {
@@ -281,7 +294,6 @@ def determine_status(data: dict, month: int, stats: dict) -> tuple:
 
     curve_frac = solar_curve_fraction(hour, month)
 
-    # Too early — less than 10% of day's energy expected yet
     if curve_frac < 0.10:
         return "ok", alerts, {
             "reason": "too early to assess",
@@ -295,14 +307,11 @@ def determine_status(data: dict, month: int, stats: dict) -> tuple:
     pace_trigger     = expected_by_now * PACE_THRESHOLD_PCT
     projected_total  = total / curve_frac
 
-    # Check 1: hourly pace
     if total < pace_trigger:
         alerts["pace_low"] = True
 
-    # Check 2: projected daily total below known low day
-    # Use 30-day min if available, otherwise use configured DAILY_LOW_KWH
     daily_min = stats.get("daily_min", DAILY_LOW_KWH)
-    if daily_min < 1:  # Not enough history yet
+    if daily_min < 1:
         daily_min = DAILY_LOW_KWH
     
     if projected_total < daily_min:
@@ -352,7 +361,6 @@ def send_telegram(message: str) -> bool:
 
 
 def send_alerts(status: str, alerts: dict, data: dict, debug: dict):
-    """Fires Telegram messages for issues and recovery."""
     now_str          = datetime.now(SAST).strftime("%Y-%m-%d %H:%M SAST")
     total            = data["total_kwh"]
     hour             = data["last_hour"]
@@ -360,7 +368,6 @@ def send_alerts(status: str, alerts: dict, data: dict, debug: dict):
     projected_total  = debug.get("projected_total", 0)
     low_day_kwh      = debug.get("low_day_kwh", DAILY_LOW_KWH)
 
-    # Load previous status for recovery detection
     prev_status = "ok"
     if STATE_FILE.exists():
         try:
@@ -376,9 +383,7 @@ def send_alerts(status: str, alerts: dict, data: dict, debug: dict):
             f"Total today: <b>{total:.2f} kWh</b> (as of {hour:02d}:00)\n"
             f"🕐 {now_str}"
         )
-
     else:
-        # Check 1: pace alert
         if alerts["pace_low"]:
             send_telegram(
                 f"🟡 <b>{PLANT_NAME} — LOW PACE</b>\n"
@@ -388,7 +393,6 @@ def send_alerts(status: str, alerts: dict, data: dict, debug: dict):
                 f"Hour: {hour:02d}:00 | 🕐 {now_str}"
             )
 
-        # Check 2: projected total alert
         if alerts["total_low"]:
             send_telegram(
                 f"🟠 <b>{PLANT_NAME} — POOR DAY PROJECTED</b>\n"
@@ -399,7 +403,6 @@ def send_alerts(status: str, alerts: dict, data: dict, debug: dict):
                 f"Hour: {hour:02d}:00 | 🕐 {now_str}"
             )
 
-        # Recovery: was bad, now ok
         if status == "ok" and prev_status in ("low", "offline"):
             send_telegram(
                 f"✅ <b>{PLANT_NAME} — RECOVERED</b>\n"
@@ -408,11 +411,9 @@ def send_alerts(status: str, alerts: dict, data: dict, debug: dict):
                 f"🕐 {now_str}"
             )
 
-        # All clear
         if not alerts["pace_low"] and not alerts["total_low"] and status == "ok":
             print(f"  ✅ All checks passed — no alert needed")
 
-    # Save state
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(STATE_FILE, "w") as f:
         json.dump({"last_status": status, "last_checked": now_str}, f, indent=2)
@@ -434,19 +435,15 @@ def main():
     month           = now.month
     sunrise, sunset = solar_window(month)
 
-    # Parse today's data
     print(f"📥 Reading: {RAW_FILE}")
     data = parse_report(RAW_FILE)
     
-    # Fetch irradiation
     print(f"🌤️  Fetching irradiation data...")
     irradiation = fetch_irradiation(data["date"])
     
-    # Load and update history
     print(f"📚 Loading historical data...")
     history = load_history()
     
-    # Add today's data to history
     history[data["date"]] = {
         "total_kwh": data["total_kwh"],
         "hourly": data["hourly"],
@@ -457,11 +454,9 @@ def main():
     
     save_history(history)
     
-    # Calculate 30-day stats
     print(f"📊 Calculating 30-day statistics...")
     stats = calculate_30day_stats(history)
     
-    # Determine status
     status, alerts, debug = determine_status(data, month, stats)
 
     print(f"  📅 Date:               {data['date']}")
@@ -476,7 +471,6 @@ def main():
 
     send_alerts(status, alerts, data, debug)
 
-    # Prepare dashboard output
     output = {
         "plant": PLANT_NAME,
         "last_updated": now.strftime("%Y-%m-%d %H:%M SAST"),
@@ -491,6 +485,10 @@ def main():
             "hourly_pv": data["hourly"],
             "irradiation": irradiation,
         },
+        
+        # ── FLAT ALIASES for backward-compat with overview dashboard ──
+        "hourly_pv": data["hourly"],
+        "irradiation": irradiation,
         
         # 30-day statistics (for chart baselines)
         "stats_30day": stats,
