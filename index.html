@@ -89,6 +89,11 @@
             border: 1px solid rgba(34, 197, 94, 0.3);
         }
 
+        .fleet-status-badge.has-issues {
+            background: rgba(251, 146, 60, 0.15);
+            border-color: rgba(251, 146, 60, 0.3);
+        }
+
         .status-dot {
             width: 8px;
             height: 8px;
@@ -97,10 +102,19 @@
             box-shadow: 0 0 8px #22c55e;
         }
 
+        .has-issues .status-dot {
+            background: #fb923c;
+            box-shadow: 0 0 8px #fb923c;
+        }
+
         .status-count {
             color: #22c55e;
             font-weight: 700;
             font-size: 0.85rem;
+        }
+
+        .has-issues .status-count {
+            color: #fb923c;
         }
 
         .sites-grid {
@@ -249,7 +263,7 @@
     <div class="container">
         <div class="header">
             <h1>Kirkwood Sites - PV Status Dashboard</h1>
-            <div class="last-updated" id="lastUpdated">Updated 12:55</div>
+            <div class="last-updated" id="lastUpdated">Updated --:--</div>
         </div>
 
         <div class="fleet-summary">
@@ -257,9 +271,9 @@
             <div class="fleet-label">Total Generation Today</div>
             <div class="fleet-status-bar">
                 <div class="fleet-status-label">Fleet Status</div>
-                <div class="fleet-status-badge">
+                <div class="fleet-status-badge" id="statusBadge">
                     <div class="status-dot"></div>
-                    <div class="status-count" id="statusCount">4 OK</div>
+                    <div class="status-count" id="statusCount">-- OK</div>
                 </div>
             </div>
         </div>
@@ -270,7 +284,7 @@
 
         <div class="footer-note">Auto-refreshes every hour</div>
 
-        <button class="refresh-btn" onclick="loadAllSites()">🔄 Refresh</button>
+        <button class="refresh-btn" onclick="loadAllSites()">&#x1f504; Refresh</button>
     </div>
 
     <script>
@@ -319,6 +333,7 @@
                             status: 'offline',
                             total_kwh: 0,
                             last_updated: 'N/A',
+                            today: { hourly_pv: new Array(24).fill(0), irradiation: new Array(24).fill(0) },
                             hourly_pv: new Array(24).fill(0),
                             stats_30day: {}
                         };
@@ -332,13 +347,23 @@
             }
         }
 
+        function getHourlyPv(site) {
+            // Support both nested (today.hourly_pv) and flat (hourly_pv) formats
+            if (site.today && site.today.hourly_pv) return site.today.hourly_pv;
+            return site.hourly_pv || new Array(24).fill(0);
+        }
+
         function updateDashboard() {
             const fleetTotal = allSitesData.reduce((sum, site) => sum + (site.total_kwh || 0), 0);
             const sitesOk = allSitesData.filter(s => s.status === 'ok').length;
+            const sitesTotal = allSitesData.length;
+            const hasIssues = sitesOk < sitesTotal;
 
             document.getElementById('fleetTotal').innerHTML = 
                 `${fleetTotal.toFixed(1)} <span style="font-size: 1.5rem; color: #9ca3af;">kWh</span>`;
             
+            const badge = document.getElementById('statusBadge');
+            badge.className = `fleet-status-badge${hasIssues ? ' has-issues' : ''}`;
             document.getElementById('statusCount').textContent = `${sitesOk} OK`;
 
             const latestUpdate = allSitesData
@@ -378,7 +403,7 @@
                             <div class="status-indicator ${site.status}"></div>
                         </div>
                         <div class="site-production">${(site.total_kwh || 0).toFixed(1)} <span style="font-size: 1rem; color: #9ca3af;">kWh</span></div>
-                        <div class="site-status ${site.status}">System ${site.status.toUpperCase()}</div>
+                        <div class="site-status ${site.status}">System ${(site.status || 'offline').toUpperCase()}</div>
                     </div>
                     <div class="site-chart-wrapper">
                         <div class="site-chart-container">
@@ -398,7 +423,7 @@
 
             const ctx = canvas.getContext('2d');
             const hours = Array.from({length: 24}, (_, i) => i);
-            const hourlyPv = site.hourly_pv || new Array(24).fill(0);
+            const hourlyPv = getHourlyPv(site);
             const stats = site.stats_30day || {};
 
             if (siteCharts[chartId]) {
@@ -420,6 +445,7 @@
                             borderDash: [3, 2],
                             fill: false,
                             pointRadius: 0,
+                            tension: 0.4,
                             order: 1
                         },
                         {
