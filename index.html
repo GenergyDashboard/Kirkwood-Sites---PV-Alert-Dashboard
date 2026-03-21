@@ -405,41 +405,38 @@
                 siteCharts[chartId].destroy();
             }
 
-            // Match the individual site chart style
+            // Mini bar chart matching the full dashboard style
             siteCharts[chartId] = new Chart(ctx, {
-                type: 'line',
+                type: 'bar',
                 data: {
                     labels: hours,
                     datasets: [
                         {
-                            label: '30-Day Avg',
+                            type: 'line',
+                            label: 'Avg',
                             data: stats.hourly_avg || new Array(24).fill(0),
-                            borderColor: 'rgba(96, 165, 250, 0.6)',
-                            borderWidth: 1.5,
-                            borderDash: [4, 2],
+                            borderColor: 'rgba(156, 163, 184, 0.6)',
+                            borderWidth: 1,
+                            borderDash: [3, 2],
                             fill: false,
                             pointRadius: 0,
-                            tension: 0
+                            order: 1
                         },
                         {
+                            type: 'bar',
                             label: 'Today',
                             data: hourlyPv,
-                            borderColor: '#22c55e',
-                            backgroundColor: 'transparent',
-                            borderWidth: 1.5,
-                            fill: false,
-                            pointRadius: 0,
-                            tension: 0
+                            backgroundColor: '#22c55e',
+                            borderWidth: 0,
+                            barPercentage: 0.8,
+                            categoryPercentage: 0.9,
+                            order: 2
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
                     plugins: {
                         legend: {
                             display: false
