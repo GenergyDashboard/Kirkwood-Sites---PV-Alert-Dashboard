@@ -1,5 +1,5 @@
 """
-download_sunsynk.py
+download_sunsynk_kirkwood_tops.py
 
 Scrapes the current day's total PV generation (kWh) from sunsynk.net
 for a configured plant, and saves it as data/sunsynk_snapshot.json.
@@ -7,7 +7,7 @@ for a configured plant, and saves it as data/sunsynk_snapshot.json.
 The snapshot is a simple timestamped reading:
   { "total_kwh": 42.3, "timestamp": "2026-03-13T09:00:00+02:00", "date": "2026-03-13" }
 
-process_sunsynk.py then compares the current snapshot to the previous
+process_sunsynk_kirkwood_tops.py then compares the current snapshot to the previous
 one to derive the hourly generation delta.
 
 Environment variables / GitHub secrets:
@@ -107,7 +107,6 @@ def scrape_total_kwh() -> float:
             search.fill(plant_name)
             human_delay(0.5, 1)
 
-            # Click search / press Enter
             try:
                 page.locator(".el-button.el-button--primary").first.click()
             except Exception:
@@ -117,11 +116,6 @@ def scrape_total_kwh() -> float:
             human_delay(3, 5)
 
             # ── Step 3: Read the kWh cell ──────────────────────────────────
-            # The plant list row contains  <div class="cell el-tooltip">16</div>
-            # There may be multiple such cells per row (one per column).
-            # The kWh today value is the one that is a valid positive number.
-            # We collect all visible cell values and pick the numeric one
-            # that looks like a reasonable daily kWh reading.
             print("⚡ Step 4: Reading kWh cell...")
 
             page.wait_for_selector("div.cell.el-tooltip", timeout=20000)
@@ -134,12 +128,9 @@ def scrape_total_kwh() -> float:
                 text = cells.nth(i).inner_text().strip()
                 try:
                     val = float(text)
-                    # Sanity check: daily kWh should be 0–9999
                     if 0.0 <= val <= 9999.0:
                         print(f"  ✅ Cell [{i}] = '{text}' → {val} kWh")
                         kwh_value = val
-                        # Don't break — take the LAST valid numeric cell
-                        # in case the first ones are row numbers or status codes
                 except ValueError:
                     print(f"  ·  Cell [{i}] = '{text}' (not numeric, skipping)")
 
@@ -178,7 +169,6 @@ def save_snapshot(total_kwh: float):
     }
     SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
 
-    # Keep previous snapshot before overwriting
     prev_snap = None
     if SNAPSHOT.exists():
         try:
@@ -187,7 +177,6 @@ def save_snapshot(total_kwh: float):
         except Exception:
             pass
 
-    # Save current as latest, and archive previous alongside it
     with open(SNAPSHOT, "w") as f:
         json.dump(snap, f, indent=2)
 
