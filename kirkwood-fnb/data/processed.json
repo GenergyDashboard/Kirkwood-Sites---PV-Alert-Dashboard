@@ -1,9 +1,9 @@
 {
   "plant": "Kirkwood FNB",
-  "last_updated": "2026-03-21 09:44 SAST",
+  "last_updated": "2026-03-21 10:50 SAST",
   "date": "2026-03-21",
-  "total_kwh": 11.4,
-  "last_hour": 8,
+  "total_kwh": 29.51,
+  "last_hour": 9,
   "status": "ok",
   "alerts": {
     "offline": false,
@@ -21,7 +21,7 @@
       0.44,
       3.92,
       7.04,
-      0.0,
+      18.11,
       0.0,
       0.0,
       0.0,
@@ -75,7 +75,7 @@
       0.44,
       3.46,
       8.03,
-      6.01,
+      15.07,
       9.97,
       11.47,
       12.16,
@@ -101,7 +101,7 @@
       0.44,
       2.99,
       7.04,
-      0.0,
+      12.03,
       0.0,
       0.0,
       0.0,
@@ -127,7 +127,7 @@
       0.44,
       3.92,
       9.01,
-      12.03,
+      18.11,
       19.94,
       22.94,
       24.32,
@@ -143,9 +143,9 @@
       0.0,
       0.0
     ],
-    "daily_min": 11.4,
+    "daily_min": 29.5,
     "daily_max": 152.0,
-    "daily_avg": 81.7,
+    "daily_avg": 90.8,
     "sample_days": 2
   },
   "history": {
@@ -207,7 +207,7 @@
       "last_hour": 22
     },
     "2026-03-21": {
-      "total_kwh": 11.4,
+      "total_kwh": 29.51,
       "hourly": [
         0.0,
         0.0,
@@ -218,7 +218,7 @@
         0.44,
         3.92,
         7.04,
-        0.0,
+        18.11,
         0.0,
         0.0,
         0.0,
@@ -260,13 +260,13 @@
         0,
         0
       ],
-      "last_updated": "2026-03-21 09:44 SAST",
-      "last_hour": 8
+      "last_updated": "2026-03-21 10:50 SAST",
+      "last_hour": 9
     }
   },
   "thresholds": {
     "expected_daily_kwh": 214.0,
-    "low_day_kwh": 11.4,
+    "low_day_kwh": 29.5,
     "pace_threshold_pct": 0.3,
     "solar_window": {
       "sunrise": 5.92,
@@ -274,12 +274,12 @@
     }
   },
   "debug": {
-    "curve_fraction": 0.15,
-    "expected_by_now": 32.1,
-    "actual_kwh": 11.4,
-    "pace_trigger": 9.6,
-    "projected_total": 75.9,
-    "low_day_kwh": 11.4,
+    "curve_fraction": 0.253,
+    "expected_by_now": 54.1,
+    "actual_kwh": 29.51,
+    "pace_trigger": 16.2,
+    "projected_total": 116.6,
+    "low_day_kwh": 29.5,
     "sunrise": 5.92,
     "sunset": 18.08,
     "checks": {
