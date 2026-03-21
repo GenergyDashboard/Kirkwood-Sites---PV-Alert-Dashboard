@@ -14,14 +14,14 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: #0f1419;
             color: #e2e8f0;
             min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
@@ -31,14 +31,15 @@
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 2rem;
+            margin-bottom: 8px;
             color: #fff;
+            font-weight: 500;
         }
 
         .last-updated {
-            color: #94a3b8;
-            font-size: 0.9rem;
+            color: #64748b;
+            font-size: 0.85rem;
         }
 
         .stats-grid {
@@ -49,24 +50,26 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #1a2332 0%, #1e2936 100%);
+            border-radius: 12px;
+            padding: 20px 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .stat-label {
-            color: #94a3b8;
-            font-size: 0.85rem;
-            margin-bottom: 10px;
+            color: #9ca3af;
+            font-size: 0.7rem;
+            margin-bottom: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 500;
         }
 
         .stat-value {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 700;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            line-height: 1;
         }
 
         .stat-value.ok { color: #22c55e; }
@@ -74,29 +77,29 @@
         .stat-value.offline { color: #ef4444; }
 
         .stat-sublabel {
-            color: #64748b;
-            font-size: 0.8rem;
+            color: #6b7280;
+            font-size: 0.85rem;
         }
 
         .chart-section {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            border-radius: 20px;
+            background: linear-gradient(135deg, #1a2332 0%, #1e2936 100%);
+            border-radius: 16px;
             padding: 30px;
             margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         .chart-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             flex-wrap: wrap;
             gap: 15px;
         }
 
         .chart-title {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 600;
             color: #fff;
         }
@@ -104,23 +107,22 @@
         .chart-controls {
             display: flex;
             gap: 10px;
-            align-items: center;
         }
 
         .toggle-btn {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(15, 23, 42, 0.5);
-            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 20, 25, 0.4);
+            color: #9ca3af;
             cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-size: 0.9rem;
+            font-weight: 500;
             transition: all 0.3s;
         }
 
         .toggle-btn:hover {
-            background: rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.2);
             border-color: #3b82f6;
             color: #60a5fa;
         }
@@ -133,7 +135,7 @@
 
         .chart-container {
             position: relative;
-            height: 400px;
+            height: 450px;
         }
 
         .loading {
@@ -145,14 +147,14 @@
 
         @media (max-width: 768px) {
             .header h1 {
-                font-size: 2rem;
+                font-size: 1.5rem;
             }
             .chart-header {
                 flex-direction: column;
                 align-items: flex-start;
             }
             .chart-container {
-                height: 300px;
+                height: 350px;
             }
         }
     </style>
@@ -161,28 +163,28 @@
     <div class="container">
         <div class="header">
             <h1 id="siteName">Addo Spar</h1>
-            <div class="last-updated" id="lastUpdated">Updated: Loading...</div>
+            <div class="last-updated" id="lastUpdated">Loading...</div>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">Total Generation Today</div>
-                <div class="stat-value" id="totalKwh">-- kWh</div>
+                <div class="stat-value ok" id="totalKwh">-- kWh</div>
                 <div class="stat-sublabel" id="statusLabel">Loading...</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">30-Day Daily Average</div>
-                <div class="stat-value" id="avgKwh">-- kWh</div>
+                <div class="stat-value" id="avgKwh" style="color: #fff;">-- kWh</div>
                 <div class="stat-sublabel">Typical day performance</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Last Hour Updated</div>
-                <div class="stat-value" id="lastHour">--:00</div>
+                <div class="stat-value" id="lastHour" style="color: #fff;">--:00</div>
                 <div class="stat-sublabel" id="lastHourKwh">-- kW generated</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Status</div>
-                <div class="stat-value" id="status">--</div>
+                <div class="stat-value ok" id="status">--</div>
                 <div class="stat-sublabel" id="statusDetail">--</div>
             </div>
         </div>
@@ -204,7 +206,6 @@
     </div>
 
     <script>
-        // Configuration - CHANGE THESE FOR EACH SITE
         const SITE_CONFIG = {
             name: "Addo Spar",
             dataUrl: "./data/processed.json"
@@ -214,10 +215,7 @@
         let hourlyChart = null;
         let currentChartMode = 'today';
 
-        // Load data on page load
         loadData();
-        
-        // Auto-refresh every hour
         setInterval(loadData, 3600000);
 
         async function loadData() {
@@ -239,12 +237,10 @@
         function updateDashboard() {
             const stats = dashboardData.stats_30day || {};
             
-            // Update header
             document.getElementById('siteName').textContent = SITE_CONFIG.name;
             document.getElementById('lastUpdated').textContent = 
                 `Updated ${dashboardData.last_updated || 'N/A'}`;
 
-            // Update stats cards
             const totalKwh = dashboardData.total_kwh || 0;
             const avgKwh = stats.daily_avg || 0;
             const status = dashboardData.status || 'offline';
@@ -261,7 +257,6 @@
             document.getElementById('lastHour').textContent = lastHour + ':00';
             document.getElementById('lastHourKwh').textContent = lastHourValue.toFixed(1) + ' kW generated';
 
-            // Status
             const statusText = status.toUpperCase();
             document.getElementById('status').textContent = statusText;
             document.getElementById('status').className = `stat-value ${status}`;
@@ -292,13 +287,13 @@
             }
 
             const chartData = currentChartMode === 'today' ? {
-                labels: hours.map(h => `${h}:00`),
+                labels: hours.map(h => h + ':00'),
                 datasets: [
                     {
                         label: 'Irradiation',
                         data: irradiation,
-                        backgroundColor: 'rgba(251, 191, 36, 0.2)',
-                        borderColor: 'rgba(251, 191, 36, 0.5)',
+                        backgroundColor: 'rgba(251, 191, 36, 0.15)',
+                        borderColor: 'rgba(251, 191, 36, 0.4)',
                         borderWidth: 1,
                         fill: true,
                         yAxisID: 'y1',
@@ -310,7 +305,7 @@
                         data: stats.hourly_avg || new Array(24).fill(0),
                         borderColor: '#60a5fa',
                         borderWidth: 2,
-                        borderDash: [5, 3],
+                        borderDash: [6, 4],
                         fill: false,
                         pointRadius: 0,
                         order: 2
@@ -319,23 +314,22 @@
                         label: 'Today PV',
                         data: hourlyPv,
                         borderColor: '#22c55e',
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        backgroundColor: 'transparent',
                         borderWidth: 2,
-                        fill: true,
+                        fill: false,
                         pointRadius: 0,
                         order: 1
                     }
                 ]
             } : {
-                labels: hours.map(h => `${h}:00`),
+                labels: hours.map(h => h + ':00'),
                 datasets: [
                     {
                         label: 'Min-Max Range',
                         data: stats.hourly_min || new Array(24).fill(0),
-                        backgroundColor: 'rgba(156, 163, 175, 0.1)',
-                        borderColor: 'rgba(156, 163, 175, 0.4)',
+                        backgroundColor: 'rgba(107, 114, 128, 0.15)',
+                        borderColor: 'rgba(107, 114, 128, 0.3)',
                         borderWidth: 1,
-                        borderDash: [5, 5],
                         fill: '+1',
                         pointRadius: 0,
                         order: 5
@@ -344,19 +338,17 @@
                         label: '',
                         data: stats.hourly_max || new Array(24).fill(0),
                         backgroundColor: 'transparent',
-                        borderColor: 'rgba(156, 163, 175, 0.4)',
+                        borderColor: 'rgba(107, 114, 128, 0.3)',
                         borderWidth: 1,
-                        borderDash: [5, 5],
                         pointRadius: 0,
                         order: 5
                     },
                     {
                         label: 'P10-P90',
                         data: stats.hourly_p10 || new Array(24).fill(0),
-                        backgroundColor: 'rgba(156, 163, 175, 0.15)',
-                        borderColor: 'rgba(156, 163, 175, 0.5)',
+                        backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                        borderColor: 'rgba(107, 114, 128, 0.4)',
                         borderWidth: 1,
-                        borderDash: [3, 3],
                         fill: '+1',
                         pointRadius: 0,
                         order: 4
@@ -365,9 +357,8 @@
                         label: '',
                         data: stats.hourly_p90 || new Array(24).fill(0),
                         backgroundColor: 'transparent',
-                        borderColor: 'rgba(156, 163, 175, 0.5)',
+                        borderColor: 'rgba(107, 114, 128, 0.4)',
                         borderWidth: 1,
-                        borderDash: [3, 3],
                         pointRadius: 0,
                         order: 4
                     },
@@ -375,8 +366,8 @@
                         label: 'P25-P75',
                         data: stats.hourly_p25 || new Array(24).fill(0),
                         backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                        borderColor: 'rgba(34, 197, 94, 0.6)',
-                        borderWidth: 2,
+                        borderColor: 'rgba(34, 197, 94, 0.5)',
+                        borderWidth: 1.5,
                         fill: '+1',
                         pointRadius: 0,
                         order: 3
@@ -385,8 +376,8 @@
                         label: '',
                         data: stats.hourly_p75 || new Array(24).fill(0),
                         backgroundColor: 'transparent',
-                        borderColor: 'rgba(34, 197, 94, 0.6)',
-                        borderWidth: 2,
+                        borderColor: 'rgba(34, 197, 94, 0.5)',
+                        borderWidth: 1.5,
                         pointRadius: 0,
                         order: 3
                     },
@@ -394,7 +385,7 @@
                         label: 'Median (P50)',
                         data: stats.hourly_avg || new Array(24).fill(0),
                         borderColor: '#22c55e',
-                        borderWidth: 3,
+                        borderWidth: 2.5,
                         borderDash: [8, 4],
                         fill: false,
                         pointRadius: 0,
@@ -417,35 +408,23 @@
                         legend: {
                             display: true,
                             position: 'top',
+                            align: 'center',
                             labels: {
-                                color: '#94a3b8',
+                                color: '#9ca3af',
                                 font: { size: 11 },
                                 usePointStyle: true,
+                                padding: 15,
                                 filter: (item) => item.text !== ''
                             }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            backgroundColor: 'rgba(15, 20, 25, 0.95)',
                             titleColor: '#e2e8f0',
                             bodyColor: '#cbd5e1',
                             borderColor: 'rgba(255, 255, 255, 0.1)',
                             borderWidth: 1,
                             padding: 12,
-                            displayColors: true,
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label && label !== '') {
-                                        label += ': ';
-                                    }
-                                    if (context.dataset.yAxisID === 'y1') {
-                                        label += context.parsed.y.toFixed(0) + ' W/m²';
-                                    } else {
-                                        label += context.parsed.y.toFixed(1) + ' kW';
-                                    }
-                                    return label;
-                                }
-                            }
+                            displayColors: true
                         }
                     },
                     scales: {
@@ -455,7 +434,7 @@
                                 drawBorder: false
                             },
                             ticks: {
-                                color: '#64748b',
+                                color: '#6b7280',
                                 font: { size: 10 }
                             }
                         },
@@ -467,7 +446,7 @@
                                 drawBorder: false
                             },
                             ticks: {
-                                color: '#64748b',
+                                color: '#6b7280',
                                 font: { size: 10 },
                                 callback: function(value) {
                                     return value.toFixed(0) + ' kW';
@@ -476,7 +455,7 @@
                             title: {
                                 display: true,
                                 text: 'PV Output (kW)',
-                                color: '#94a3b8',
+                                color: '#9ca3af',
                                 font: { size: 11 }
                             }
                         },
@@ -508,7 +487,6 @@
         function switchChartMode(mode) {
             currentChartMode = mode;
             
-            // Update button states
             document.querySelectorAll('.toggle-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
