@@ -1,9 +1,9 @@
 {
   "plant": "Kirkwood Spar",
-  "last_updated": "2026-03-21 09:46 SAST",
+  "last_updated": "2026-03-21 10:51 SAST",
   "date": "2026-03-21",
-  "total_kwh": 38.8,
-  "last_hour": 8,
+  "total_kwh": 93.08,
+  "last_hour": 9,
   "status": "ok",
   "alerts": {
     "offline": false,
@@ -21,7 +21,7 @@
       1.59,
       13.23,
       23.98,
-      0.0,
+      54.28,
       0.0,
       0.0,
       0.0,
@@ -75,7 +75,7 @@
       1.47,
       11.17,
       25.25,
-      18.34,
+      45.48,
       27.77,
       35.3,
       36.1,
@@ -101,7 +101,7 @@
       1.35,
       9.11,
       23.98,
-      0.0,
+      36.67,
       0.0,
       0.0,
       0.0,
@@ -127,7 +127,7 @@
       1.59,
       13.23,
       26.52,
-      36.67,
+      54.28,
       55.55,
       70.6,
       72.21,
@@ -143,9 +143,9 @@
       0.0,
       0.0
     ],
-    "daily_min": 38.8,
+    "daily_min": 93.1,
     "daily_max": 464.9,
-    "daily_avg": 251.8,
+    "daily_avg": 279.0,
     "sample_days": 2
   },
   "history": {
@@ -207,7 +207,7 @@
       "last_hour": 22
     },
     "2026-03-21": {
-      "total_kwh": 38.8,
+      "total_kwh": 93.08,
       "hourly": [
         0.0,
         0.0,
@@ -218,7 +218,7 @@
         1.59,
         13.23,
         23.98,
-        0.0,
+        54.28,
         0.0,
         0.0,
         0.0,
@@ -260,13 +260,13 @@
         0,
         0
       ],
-      "last_updated": "2026-03-21 09:46 SAST",
-      "last_hour": 8
+      "last_updated": "2026-03-21 10:51 SAST",
+      "last_hour": 9
     }
   },
   "thresholds": {
     "expected_daily_kwh": 670.0,
-    "low_day_kwh": 38.8,
+    "low_day_kwh": 93.1,
     "pace_threshold_pct": 0.3,
     "solar_window": {
       "sunrise": 5.92,
@@ -274,12 +274,12 @@
     }
   },
   "debug": {
-    "curve_fraction": 0.15,
-    "expected_by_now": 100.6,
-    "actual_kwh": 38.8,
-    "pace_trigger": 30.2,
-    "projected_total": 258.4,
-    "low_day_kwh": 38.8,
+    "curve_fraction": 0.253,
+    "expected_by_now": 169.5,
+    "actual_kwh": 93.08,
+    "pace_trigger": 50.9,
+    "projected_total": 367.9,
+    "low_day_kwh": 93.1,
     "sunrise": 5.92,
     "sunset": 18.08,
     "checks": {
