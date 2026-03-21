@@ -6,11 +6,11 @@ Enhanced Sunsynk processor for Kirkwood Tops that:
 - Stores historical daily data
 - Fetches irradiation from Open-Meteo API
 - Calculates 30-day hourly averages (bell curve baseline)
-- Calculates 30-day min/max bands
+- Calculates 30-day min/max bands and percentiles (p10/p25/p75/p90)
 - Sends Telegram alerts for underperformance
 - Produces dashboard-ready JSON
 
-Works with download_sunsynk.py which saves snapshots every run.
+Works with download_sunsynk_kirkwood_tops.py which saves snapshots every run.
 """
 
 import json
@@ -86,10 +86,6 @@ def solar_curve_fraction(hour: int, month: int) -> float:
 # =============================================================================
 
 def fetch_irradiation(date_str: str) -> list:
-    """
-    Fetch hourly GHI (Global Horizontal Irradiance) for the given date.
-    Returns list of 24 hourly values in W/m².
-    """
     try:
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
@@ -105,7 +101,6 @@ def fetch_irradiation(date_str: str) -> list:
         data = resp.json()
         
         irradiation = data.get("hourly", {}).get("shortwave_radiation", [])
-        # Ensure we have exactly 24 values
         while len(irradiation) < 24:
             irradiation.append(0)
         return [round(v if v else 0, 1) for v in irradiation[:24]]
@@ -135,7 +130,6 @@ def build_hourly(current: dict, prev: dict | None, today: str) -> list:
     Load persisted hourly accumulator for today, then apply the latest delta.
     Returns a 24-element list of kWh per hour.
     """
-    # Load today's hourly accumulator (reset if date changed)
     acc_data = load_json(HOURLY_FILE)
     if acc_data and acc_data.get("date") == today:
         hourly = acc_data["hourly"]
@@ -145,7 +139,6 @@ def build_hourly(current: dict, prev: dict | None, today: str) -> list:
 
     current_hour = current["hour"]
 
-    # Calculate delta from previous snapshot
     if prev is None:
         print("  ℹ️  No previous snapshot — delta = 0 for this run")
         delta = 0.0
@@ -159,10 +152,8 @@ def build_hourly(current: dict, prev: dict | None, today: str) -> list:
             delta = 0.0
         print(f"  ⚡ Delta this run: {delta:.3f} kWh → hour {current_hour:02d}:00")
 
-    # Accumulate into this hour's slot
     hourly[current_hour] = round(hourly[current_hour] + delta, 4)
 
-    # Persist updated accumulator
     HOURLY_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(HOURLY_FILE, "w") as f:
         json.dump({"date": today, "hourly": hourly}, f, indent=2)
@@ -176,7 +167,6 @@ def build_hourly(current: dict, prev: dict | None, today: str) -> list:
 # =============================================================================
 
 def load_history() -> dict:
-    """Load historical data, returns dict of {date: {data}}"""
     if not HISTORY_FILE.exists():
         return {}
     try:
@@ -188,31 +178,44 @@ def load_history() -> dict:
 
 
 def save_history(history: dict):
-    """Save historical data and prune to last HISTORY_DAYS"""
     HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
-    
-    # Prune old entries
     cutoff = (datetime.now(SAST) - timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d")
     history = {k: v for k, v in history.items() if k >= cutoff}
-    
     with open(HISTORY_FILE, "w") as f:
         json.dump(history, f, indent=2)
 
 
+def percentile(sorted_vals: list, p: float) -> float:
+    """Calculate percentile from a pre-sorted list (p in 0-100)."""
+    if not sorted_vals:
+        return 0
+    if len(sorted_vals) == 1:
+        return sorted_vals[0]
+    k = (len(sorted_vals) - 1) * (p / 100.0)
+    f = int(k)
+    c = f + 1
+    if c >= len(sorted_vals):
+        return sorted_vals[-1]
+    d = k - f
+    return sorted_vals[f] + d * (sorted_vals[c] - sorted_vals[f])
+
+
 def calculate_30day_stats(history: dict) -> dict:
-    """Calculate 30-day statistics"""
     if not history:
         return {
             "hourly_avg": [0] * 24,
             "hourly_min": [0] * 24,
             "hourly_max": [0] * 24,
+            "hourly_p10": [0] * 24,
+            "hourly_p25": [0] * 24,
+            "hourly_p75": [0] * 24,
+            "hourly_p90": [0] * 24,
             "daily_min": 0,
             "daily_max": 0,
             "daily_avg": 0,
             "sample_days": 0,
         }
     
-    # Collect all hourly values across days
     hourly_values = [[] for _ in range(24)]
     daily_totals = []
     
@@ -226,24 +229,26 @@ def calculate_30day_stats(history: dict) -> dict:
                 if hour < len(hourly):
                     hourly_values[hour].append(hourly[hour])
     
-    # Calculate stats
-    hourly_avg = [
-        round(sum(vals) / len(vals), 2) if vals else 0
-        for vals in hourly_values
-    ]
-    hourly_min = [
-        round(min(vals), 2) if vals else 0
-        for vals in hourly_values
-    ]
-    hourly_max = [
-        round(max(vals), 2) if vals else 0
-        for vals in hourly_values
-    ]
+    hourly_avg = [round(sum(v)/len(v), 2) if v else 0 for v in hourly_values]
+    hourly_min = [round(min(v), 2) if v else 0 for v in hourly_values]
+    hourly_max = [round(max(v), 2) if v else 0 for v in hourly_values]
+    
+    hourly_p10, hourly_p25, hourly_p75, hourly_p90 = [], [], [], []
+    for hour in range(24):
+        vals = sorted(hourly_values[hour])
+        hourly_p10.append(round(percentile(vals, 10), 2))
+        hourly_p25.append(round(percentile(vals, 25), 2))
+        hourly_p75.append(round(percentile(vals, 75), 2))
+        hourly_p90.append(round(percentile(vals, 90), 2))
     
     return {
         "hourly_avg": hourly_avg,
         "hourly_min": hourly_min,
         "hourly_max": hourly_max,
+        "hourly_p10": hourly_p10,
+        "hourly_p25": hourly_p25,
+        "hourly_p75": hourly_p75,
+        "hourly_p90": hourly_p90,
         "daily_min": round(min(daily_totals), 1) if daily_totals else 0,
         "daily_max": round(max(daily_totals), 1) if daily_totals else 0,
         "daily_avg": round(sum(daily_totals) / len(daily_totals), 1) if daily_totals else 0,
@@ -256,7 +261,6 @@ def calculate_30day_stats(history: dict) -> dict:
 # =============================================================================
 
 def determine_status(total: float, last_hour: int, month: int, stats: dict) -> tuple:
-    """Returns (status, alerts, debug). Uses 30-day stats for smarter thresholds."""
     alerts = {"offline": False, "pace_low": False, "total_low": False}
     sunrise, sunset = solar_window(month)
 
@@ -287,7 +291,6 @@ def determine_status(total: float, last_hour: int, month: int, stats: dict) -> t
     if total < pace_trigger:
         alerts["pace_low"] = True
     
-    # Use 30-day min if available
     daily_min = stats.get("daily_min", DAILY_LOW_KWH)
     if daily_min < 1:
         daily_min = DAILY_LOW_KWH
@@ -420,18 +423,14 @@ def main():
     if prev:
         print(f"  📦 Prev snap: {prev.get('timestamp','?')} → {prev.get('total_kwh','?')} kWh")
 
-    # Build hourly data using Sunsynk snapshot deltas
     hourly = build_hourly(current, prev, today)
     
-    # Fetch irradiation
     print(f"🌤️  Fetching irradiation data...")
     irradiation = fetch_irradiation(today)
     
-    # Load and update history
     print(f"📚 Loading historical data...")
     history = load_history()
     
-    # Add today's data to history
     history[today] = {
         "total_kwh": total,
         "hourly": hourly,
@@ -442,7 +441,6 @@ def main():
     
     save_history(history)
     
-    # Calculate 30-day stats
     print(f"📊 Calculating 30-day statistics...")
     stats = calculate_30day_stats(history)
 
@@ -466,16 +464,16 @@ def main():
         "status":       status,
         "alerts":       alerts,
         
-        # Current day data
         "today": {
             "hourly_pv": hourly,
             "irradiation": irradiation,
         },
         
-        # 30-day statistics
-        "stats_30day": stats,
+        # ── FLAT ALIASES for backward-compat with overview dashboard ──
+        "hourly_pv": hourly,
+        "irradiation": irradiation,
         
-        # Historical data
+        "stats_30day": stats,
         "history": history,
         
         "thresholds": {
