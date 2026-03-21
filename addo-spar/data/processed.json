@@ -1,9 +1,9 @@
 {
   "plant": "Addo Spar",
-  "last_updated": "2026-03-21 09:02 SAST",
+  "last_updated": "2026-03-21 09:44 SAST",
   "date": "2026-03-21",
-  "total_kwh": 39.31,
-  "last_hour": 7,
+  "total_kwh": 106.93,
+  "last_hour": 8,
   "status": "ok",
   "alerts": {
     "offline": false,
@@ -20,7 +20,7 @@
       0.0,
       4.47,
       34.84,
-      0.0,
+      67.62,
       0.0,
       0.0,
       0.0,
@@ -74,7 +74,7 @@
       0.0,
       2.61,
       17.45,
-      27.27,
+      61.08,
       36.2,
       38.99,
       36.53,
@@ -100,7 +100,7 @@
       0.0,
       0.76,
       0.05,
-      0.0,
+      54.54,
       0.0,
       0.0,
       0.0,
@@ -126,7 +126,7 @@
       0.0,
       4.47,
       34.84,
-      54.54,
+      67.62,
       72.41,
       77.98,
       73.07,
@@ -143,9 +143,9 @@
       0.0,
       0.0
     ],
-    "daily_min": 39.3,
+    "daily_min": 106.9,
     "daily_max": 601.7,
-    "daily_avg": 320.5,
+    "daily_avg": 354.3,
     "sample_days": 2
   },
   "history": {
@@ -207,7 +207,7 @@
       "last_hour": 22
     },
     "2026-03-21": {
-      "total_kwh": 39.31,
+      "total_kwh": 106.93,
       "hourly": [
         0.0,
         0.0,
@@ -217,7 +217,7 @@
         0.0,
         4.47,
         34.84,
-        0.0,
+        67.62,
         0.0,
         0.0,
         0.0,
@@ -260,13 +260,13 @@
         0,
         0
       ],
-      "last_updated": "2026-03-21 09:02 SAST",
-      "last_hour": 7
+      "last_updated": "2026-03-21 09:44 SAST",
+      "last_hour": 8
     }
   },
   "thresholds": {
     "expected_daily_kwh": 1400.0,
-    "low_day_kwh": 39.3,
+    "low_day_kwh": 106.9,
     "pace_threshold_pct": 0.3,
     "solar_window": {
       "sunrise": 5.92,
@@ -274,12 +274,17 @@
     }
   },
   "debug": {
-    "reason": "too early to assess",
-    "curve_fraction": 0.07,
-    "expected_by_now": 98.7,
-    "pace_trigger": 0.0,
-    "projected_total": 0.0,
+    "curve_fraction": 0.15,
+    "expected_by_now": 210.2,
+    "actual_kwh": 106.93,
+    "pace_trigger": 63.1,
+    "projected_total": 712.2,
+    "low_day_kwh": 106.9,
     "sunrise": 5.92,
-    "sunset": 18.08
+    "sunset": 18.08,
+    "checks": {
+      "pace_low": false,
+      "total_low": false
+    }
   }
 }
