@@ -5,7 +5,7 @@ Enhanced processor for Addo Spar that:
 - Stores historical daily data
 - Fetches irradiation from Open-Meteo API
 - Calculates 30-day hourly averages (bell curve baseline)
-- Calculates 30-day min/max bands
+- Calculates 30-day min/max bands and percentiles (p10/p25/p75/p90)
 - Sends Telegram alerts for underperformance
 - Produces dashboard-ready JSON
 
@@ -195,12 +195,28 @@ def save_history(history: dict):
         json.dump(history, f, indent=2)
 
 
+def percentile(sorted_vals: list, p: float) -> float:
+    """Calculate percentile from a pre-sorted list (p in 0-100)."""
+    if not sorted_vals:
+        return 0
+    if len(sorted_vals) == 1:
+        return sorted_vals[0]
+    k = (len(sorted_vals) - 1) * (p / 100.0)
+    f = int(k)
+    c = f + 1
+    if c >= len(sorted_vals):
+        return sorted_vals[-1]
+    d = k - f
+    return sorted_vals[f] + d * (sorted_vals[c] - sorted_vals[f])
+
+
 def calculate_30day_stats(history: dict) -> dict:
     """
     Calculate 30-day statistics:
     - hourly_avg: average PV for each hour [0-23] over last 30 days
     - hourly_min: minimum PV for each hour
     - hourly_max: maximum PV for each hour
+    - hourly_p10, hourly_p25, hourly_p75, hourly_p90: percentile bands
     - daily_min: lowest daily total
     - daily_max: highest daily total
     - daily_avg: average daily total
@@ -210,6 +226,10 @@ def calculate_30day_stats(history: dict) -> dict:
             "hourly_avg": [0] * 24,
             "hourly_min": [0] * 24,
             "hourly_max": [0] * 24,
+            "hourly_p10": [0] * 24,
+            "hourly_p25": [0] * 24,
+            "hourly_p75": [0] * 24,
+            "hourly_p90": [0] * 24,
             "daily_min": 0,
             "daily_max": 0,
             "daily_avg": 0,
@@ -244,10 +264,27 @@ def calculate_30day_stats(history: dict) -> dict:
         for vals in hourly_values
     ]
     
+    # Calculate percentile bands
+    hourly_p10 = []
+    hourly_p25 = []
+    hourly_p75 = []
+    hourly_p90 = []
+    
+    for hour in range(24):
+        vals = sorted(hourly_values[hour])
+        hourly_p10.append(round(percentile(vals, 10), 2))
+        hourly_p25.append(round(percentile(vals, 25), 2))
+        hourly_p75.append(round(percentile(vals, 75), 2))
+        hourly_p90.append(round(percentile(vals, 90), 2))
+    
     return {
         "hourly_avg": hourly_avg,
         "hourly_min": hourly_min,
         "hourly_max": hourly_max,
+        "hourly_p10": hourly_p10,
+        "hourly_p25": hourly_p25,
+        "hourly_p75": hourly_p75,
+        "hourly_p90": hourly_p90,
         "daily_min": round(min(daily_totals), 1) if daily_totals else 0,
         "daily_max": round(max(daily_totals), 1) if daily_totals else 0,
         "daily_avg": round(sum(daily_totals) / len(daily_totals), 1) if daily_totals else 0,
@@ -491,6 +528,10 @@ def main():
             "hourly_pv": data["hourly"],
             "irradiation": irradiation,
         },
+        
+        # ── FLAT ALIASES for backward-compat with overview dashboard ──
+        "hourly_pv": data["hourly"],
+        "irradiation": irradiation,
         
         # 30-day statistics (for chart baselines)
         "stats_30day": stats,
