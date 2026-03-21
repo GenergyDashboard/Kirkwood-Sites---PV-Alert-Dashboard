@@ -146,13 +146,6 @@
         }
 
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.5rem;
-            }
-            .chart-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
             .chart-container {
                 height: 350px;
             }
@@ -257,8 +250,7 @@
             document.getElementById('lastHour').textContent = lastHour + ':00';
             document.getElementById('lastHourKwh').textContent = lastHourValue.toFixed(1) + ' kW generated';
 
-            const statusText = status.toUpperCase();
-            document.getElementById('status').textContent = statusText;
+            document.getElementById('status').textContent = status.toUpperCase();
             document.getElementById('status').className = `stat-value ${status}`;
             
             const percentOfAvg = avgKwh > 0 ? ((totalKwh / avgKwh) * 100).toFixed(0) : 0;
@@ -287,13 +279,14 @@
             }
 
             const chartData = currentChartMode === 'today' ? {
-                labels: hours.map(h => h + ':00'),
+                labels: hours.map(h => (h < 10 ? '0' : '') + h + ':00'),
                 datasets: [
                     {
-                        label: 'Irradiation',
+                        type: 'line',
+                        label: 'Irradiation (W/m²)',
                         data: irradiation,
-                        backgroundColor: 'rgba(251, 191, 36, 0.15)',
-                        borderColor: 'rgba(251, 191, 36, 0.4)',
+                        backgroundColor: 'rgba(133, 77, 14, 0.6)',
+                        borderColor: 'rgba(202, 138, 4, 0.8)',
                         borderWidth: 1,
                         fill: true,
                         yAxisID: 'y1',
@@ -301,49 +294,54 @@
                         order: 3
                     },
                     {
-                        label: '30-Day Average',
+                        type: 'line',
+                        label: 'Predicted (Monthly Avg)',
                         data: stats.hourly_avg || new Array(24).fill(0),
-                        borderColor: '#60a5fa',
+                        borderColor: '#9ca3af',
                         borderWidth: 2,
-                        borderDash: [6, 4],
+                        borderDash: [5, 3],
                         fill: false,
                         pointRadius: 0,
                         order: 2
                     },
                     {
-                        label: 'Today PV',
+                        type: 'bar',
+                        label: 'PV Generation (kW)',
                         data: hourlyPv,
+                        backgroundColor: '#22c55e',
                         borderColor: '#22c55e',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        fill: false,
-                        pointRadius: 0,
+                        borderWidth: 0,
+                        barPercentage: 0.9,
+                        categoryPercentage: 0.95,
                         order: 1
                     }
                 ]
             } : {
-                labels: hours.map(h => h + ':00'),
+                labels: hours.map(h => (h < 10 ? '0' : '') + h + ':00'),
                 datasets: [
                     {
+                        type: 'line',
                         label: 'Min-Max Range',
                         data: stats.hourly_min || new Array(24).fill(0),
-                        backgroundColor: 'rgba(107, 114, 128, 0.15)',
-                        borderColor: 'rgba(107, 114, 128, 0.3)',
+                        backgroundColor: 'rgba(75, 85, 99, 0.15)',
+                        borderColor: 'rgba(75, 85, 99, 0.3)',
                         borderWidth: 1,
                         fill: '+1',
                         pointRadius: 0,
                         order: 5
                     },
                     {
+                        type: 'line',
                         label: '',
                         data: stats.hourly_max || new Array(24).fill(0),
                         backgroundColor: 'transparent',
-                        borderColor: 'rgba(107, 114, 128, 0.3)',
+                        borderColor: 'rgba(75, 85, 99, 0.3)',
                         borderWidth: 1,
                         pointRadius: 0,
                         order: 5
                     },
                     {
+                        type: 'line',
                         label: 'P10-P90',
                         data: stats.hourly_p10 || new Array(24).fill(0),
                         backgroundColor: 'rgba(107, 114, 128, 0.2)',
@@ -354,6 +352,7 @@
                         order: 4
                     },
                     {
+                        type: 'line',
                         label: '',
                         data: stats.hourly_p90 || new Array(24).fill(0),
                         backgroundColor: 'transparent',
@@ -363,6 +362,7 @@
                         order: 4
                     },
                     {
+                        type: 'line',
                         label: 'P25-P75',
                         data: stats.hourly_p25 || new Array(24).fill(0),
                         backgroundColor: 'rgba(34, 197, 94, 0.2)',
@@ -373,6 +373,7 @@
                         order: 3
                     },
                     {
+                        type: 'line',
                         label: '',
                         data: stats.hourly_p75 || new Array(24).fill(0),
                         backgroundColor: 'transparent',
@@ -382,6 +383,7 @@
                         order: 3
                     },
                     {
+                        type: 'line',
                         label: 'Median (P50)',
                         data: stats.hourly_avg || new Array(24).fill(0),
                         borderColor: '#22c55e',
@@ -395,7 +397,7 @@
             };
 
             hourlyChart = new Chart(ctx, {
-                type: 'line',
+                type: 'bar',
                 data: chartData,
                 options: {
                     responsive: true,
@@ -454,7 +456,7 @@
                             },
                             title: {
                                 display: true,
-                                text: 'PV Output (kW)',
+                                text: 'Power (kW)',
                                 color: '#9ca3af',
                                 font: { size: 11 }
                             }
@@ -466,7 +468,7 @@
                                 drawOnChartArea: false,
                             },
                             ticks: {
-                                color: '#fbbf24',
+                                color: '#ca8a04',
                                 font: { size: 10 },
                                 callback: function(value) {
                                     return value.toFixed(0);
@@ -475,7 +477,7 @@
                             title: {
                                 display: true,
                                 text: 'Irradiation (W/m²)',
-                                color: '#fbbf24',
+                                color: '#ca8a04',
                                 font: { size: 11 }
                             }
                         } : undefined
