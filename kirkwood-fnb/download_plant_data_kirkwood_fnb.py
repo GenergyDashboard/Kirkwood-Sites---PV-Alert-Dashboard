@@ -1,17 +1,8 @@
 """
-download_plant_data.py
+download_plant_data_kirkwood_fnb.py
 
-Downloads the daily plant report from FusionSolar for a configured site.
-Site name, credentials, and paths are all configurable via environment
-variables or the SITE_CONFIG dict below.
-
-Environment variables (set as secrets):
-  FUSIONSOLAR_USERNAME  - your FusionSolar username
-  FUSIONSOLAR_PASSWORD  - your FusionSolar password
-
-Optional overrides:
-  PLANT_NAME            - override the plant name to search for
-  OUTPUT_FILE           - override the output xlsx path (default: data/raw_report.xlsx)
+Downloads the daily plant report from FusionSolar for Kirkwood FNB.
+See download_plant_data_addo.py for full documentation.
 """
 
 import time
@@ -24,11 +15,10 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 # =============================================================================
-# ✏️  SITE CONFIGURATION — Edit this section to change the monitored site
+# ✏️  SITE CONFIGURATION
 # =============================================================================
 SITE_CONFIG = {
-    "plant_name": os.environ.get("PLANT_NAME", "Addo Spar"),
-    # Output path is relative to this script's directory
+    "plant_name": os.environ.get("PLANT_NAME", "Kirkwood FNB"),
     "output_file": os.environ.get(
         "OUTPUT_FILE",
         str(Path(__file__).parent / "data" / "raw_report.xlsx")
@@ -36,7 +26,7 @@ SITE_CONFIG = {
 }
 
 # =============================================================================
-# FusionSolar URLs (rarely need changing)
+# FusionSolar URLs
 # =============================================================================
 FUSIONSOLAR_HOST = "intl.fusionsolar.huawei.com"
 FUSIONSOLAR_BASE = f"https://{FUSIONSOLAR_HOST}"
@@ -55,7 +45,6 @@ FALLBACK_IP = "119.8.160.213"
 # =============================================================================
 
 def fix_dns_resolution():
-    """Ensure intl.fusionsolar.huawei.com resolves — patch /etc/hosts if needed."""
     print(f"🔍 Checking DNS for {FUSIONSOLAR_HOST}...")
     try:
         ip = socket.gethostbyname(FUSIONSOLAR_HOST)
@@ -135,7 +124,6 @@ def type_human_like(field, text):
 
 
 def find_search_field(page):
-    """Try multiple strategies to locate the plant-search input."""
     strategies = [
         ("role textbox 'Plant name'",    lambda: page.get_by_role("textbox", name="Plant name")),
         ("placeholder 'Plant name'",     lambda: page.locator("input[placeholder*='Plant name']").first),
@@ -172,7 +160,7 @@ def download_plant_data():
     username = os.environ.get("FUSIONSOLAR_USERNAME")
     password = os.environ.get("FUSIONSOLAR_PASSWORD")
     if not username or not password:
-        print("❌ FUSIONSOLAR_USERNAME and FUSIONSOLAR_PASSWORD must be set as environment variables / secrets")
+        print("❌ FUSIONSOLAR_USERNAME and FUSIONSOLAR_PASSWORD must be set")
         sys.exit(1)
     print(f"🔐 Username: {username[:4]}***")
 
@@ -223,20 +211,17 @@ def download_plant_data():
             human_delay(5, 8)
             random_mouse_movement(page)
 
-            # ── Dismiss any modal dialogs before interacting ───────────────
+            # ── Dismiss any modal dialogs ──────────────────────────────────
             print("🔔 Checking for modal dialogs...")
             modal_dismissed = False
             modal_selectors = [
-                # Close button inside dpdesign modal (the one seen in logs)
                 ".dpdesign-modal-wrap .dpdesign-modal-close",
                 ".dpdesign-modal-wrap button[aria-label='Close']",
                 ".dpdesign-modal-wrap .dpdesign-icon-close",
-                # Generic ant-design / common close patterns
                 ".ant-modal-close",
                 ".ant-modal-close-x",
                 "button[aria-label='Close']",
                 ".modal-close",
-                # Any visible × / close button
                 "button:has-text('×')",
                 "button:has-text('✕')",
                 "button:has-text('Close')",
@@ -256,7 +241,6 @@ def download_plant_data():
                 except Exception:
                     continue
             if not modal_dismissed:
-                # Try pressing Escape as a last resort
                 try:
                     page.keyboard.press("Escape")
                     human_delay(0.5, 1)
@@ -275,7 +259,6 @@ def download_plant_data():
             type_human_like(search_field, plant_name)
             human_delay(2, 3)
 
-            # Click Search button or press Enter
             try:
                 page.get_by_role("button", name="Search").click()
             except Exception:
