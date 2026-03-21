@@ -1,9 +1,9 @@
 {
   "plant": "Kirkwood Tops",
-  "last_updated": "2026-03-21 11:49 SAST",
+  "last_updated": "2026-03-21 12:48 SAST",
   "date": "2026-03-21",
-  "total_kwh": 20.4,
-  "last_hour": 11,
+  "total_kwh": 27.9,
+  "last_hour": 12,
   "status": "ok",
   "alerts": {
     "offline": false,
@@ -24,7 +24,7 @@
       5.8,
       6.6,
       6.9,
-      0.0,
+      7.5,
       0.0,
       0.0,
       0.0,
@@ -77,7 +77,7 @@
     5.8,
     6.6,
     6.9,
-    0.0,
+    7.5,
     0.0,
     0.0,
     0.0,
@@ -130,7 +130,7 @@
       2.9,
       3.3,
       3.45,
-      0.0,
+      3.75,
       0.0,
       0.0,
       0.0,
@@ -182,7 +182,7 @@
       5.8,
       6.6,
       6.9,
-      0.0,
+      7.5,
       0.0,
       0.0,
       0.0,
@@ -208,7 +208,7 @@
       0.58,
       0.66,
       0.69,
-      0.0,
+      0.75,
       0.0,
       0.0,
       0.0,
@@ -234,7 +234,7 @@
       1.45,
       1.65,
       1.73,
-      0.0,
+      1.88,
       0.0,
       0.0,
       0.0,
@@ -260,7 +260,7 @@
       4.35,
       4.95,
       5.18,
-      0.0,
+      5.62,
       0.0,
       0.0,
       0.0,
@@ -286,7 +286,7 @@
       5.22,
       5.94,
       6.21,
-      0.0,
+      6.75,
       0.0,
       0.0,
       0.0,
@@ -299,9 +299,9 @@
       0.0,
       0.0
     ],
-    "daily_min": 20.4,
+    "daily_min": 27.9,
     "daily_max": 51.8,
-    "daily_avg": 36.1,
+    "daily_avg": 39.8,
     "sample_days": 2
   },
   "history": {
@@ -363,7 +363,7 @@
       "last_hour": 23
     },
     "2026-03-21": {
-      "total_kwh": 20.4,
+      "total_kwh": 27.9,
       "hourly": [
         0.0,
         0.0,
@@ -377,7 +377,7 @@
         5.8,
         6.6,
         6.9,
-        0.0,
+        7.5,
         0.0,
         0.0,
         0.0,
@@ -416,13 +416,13 @@
         0,
         0
       ],
-      "last_updated": "2026-03-21 11:49 SAST",
-      "last_hour": 11
+      "last_updated": "2026-03-21 12:48 SAST",
+      "last_hour": 12
     }
   },
   "thresholds": {
     "expected_daily_kwh": 37.0,
-    "low_day_kwh": 20.4,
+    "low_day_kwh": 27.9,
     "pace_threshold_pct": 0.3,
     "solar_window": {
       "sunrise": 5.92,
@@ -430,12 +430,12 @@
     }
   },
   "debug": {
-    "curve_fraction": 0.5,
-    "expected_by_now": 18.5,
-    "actual_kwh": 20.4,
-    "pace_trigger": 5.5,
-    "projected_total": 40.8,
-    "low_day_kwh": 20.4,
+    "curve_fraction": 0.628,
+    "expected_by_now": 23.2,
+    "actual_kwh": 27.9,
+    "pace_trigger": 7.0,
+    "projected_total": 44.4,
+    "low_day_kwh": 27.9,
     "sunrise": 5.92,
     "sunset": 18.08,
     "checks": {
