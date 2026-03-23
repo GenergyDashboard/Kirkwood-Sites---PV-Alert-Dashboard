@@ -200,27 +200,44 @@
             align-items: center;
             gap: 10px;
             margin-top: 15px;
-            padding: 12px 16px;
+            padding: 14px 18px;
             background: rgba(10, 15, 26, 0.5);
             border-radius: 10px;
+            flex-wrap: wrap;
         }
 
         .date-picker-row.show { display: flex; }
 
-        .date-picker-row input[type="date"] {
+        .date-picker-row select {
             background: rgba(15, 20, 25, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 6px;
             color: #e2e8f0;
-            padding: 6px 12px;
-            font-size: 0.85rem;
+            padding: 8px 12px;
+            font-size: 0.9rem;
             cursor: pointer;
+            appearance: auto;
         }
 
         .date-picker-row label {
             color: #9ca3af;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
+
+        .date-picker-row .go-btn {
+            padding: 8px 18px;
+            border-radius: 6px;
+            border: none;
+            background: #3b82f6;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .date-picker-row .go-btn:hover { background: #2563eb; }
 
         .loading {
             text-align: center;
@@ -283,8 +300,11 @@
                 </div>
             </div>
             <div class="date-picker-row" id="datePicker">
-                <label>Select date:</label>
-                <input type="date" id="dateInput" onchange="viewPastDay(this.value)">
+                <label>View past day:</label>
+                <select id="dateDay"></select>
+                <select id="dateMonth"></select>
+                <select id="dateYear"></select>
+                <button class="go-btn" onclick="goToPastDay()">View</button>
             </div>
             <div class="chart-container">
                 <canvas id="hourlyChart"></canvas>
@@ -303,6 +323,9 @@
         let dashboardData = null;
         let hourlyChart = null;
         let currentChartMode = 'today';
+
+        // Crisp rendering on high-DPI and zoom
+        Chart.defaults.devicePixelRatio = window.devicePixelRatio * 2 || 2;
 
         loadData();
         setInterval(loadData, 3600000);
@@ -597,7 +620,7 @@
                         align: 'center',
                         labels: {
                             color: '#9ca3af',
-                            font: { size: 11 },
+                            font: { size: 13 },
                             usePointStyle: true,
                             padding: 15,
                             filter: (item) => item.text !== ''
@@ -624,7 +647,7 @@
                         },
                         ticks: {
                             color: '#6b7280',
-                            font: { size: 10 },
+                            font: { size: 12 },
                             maxRotation: isHistory ? 45 : 0
                         }
                     },
@@ -637,7 +660,7 @@
                         },
                         ticks: {
                             color: '#6b7280',
-                            font: { size: 10 },
+                            font: { size: 12 },
                             callback: function(value) {
                                 return value.toFixed(0) + (isHistory ? '' : ' kW');
                             }
@@ -658,7 +681,7 @@
                             },
                             ticks: {
                                 color: '#ca8a04',
-                                font: { size: 10 },
+                                font: { size: 12 },
                                 callback: function(value) {
                                     return value.toFixed(0);
                                 }
@@ -698,14 +721,47 @@
             const picker = document.getElementById('datePicker');
             picker.classList.toggle('show');
             if (picker.classList.contains('show')) {
-                const input = document.getElementById('dateInput');
                 const history = dashboardData.history || {};
                 const dates = Object.keys(history).sort();
-                if (dates.length) {
-                    input.min = dates[0];
-                    input.max = dates[dates.length - 1];
+                if (!dates.length) return;
+
+                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                const availYears = [...new Set(dates.map(d => d.slice(0,4)))].sort();
+                const latest = dates[dates.length - 1];
+
+                const yearSel = document.getElementById('dateYear');
+                const monthSel = document.getElementById('dateMonth');
+                const daySel = document.getElementById('dateDay');
+
+                yearSel.innerHTML = availYears.map(y => `<option value="${y}" ${y===latest.slice(0,4)?'selected':''}>${y}</option>`).join('');
+                
+                function updateMonths() {
+                    const yr = yearSel.value;
+                    const availMonths = [...new Set(dates.filter(d=>d.startsWith(yr)).map(d=>parseInt(d.slice(5,7))))].sort((a,b)=>a-b);
+                    monthSel.innerHTML = availMonths.map(m => `<option value="${m}" ${m===parseInt(latest.slice(5,7))?'selected':''}>${months[m-1]}</option>`).join('');
+                    updateDays();
                 }
+
+                function updateDays() {
+                    const yr = yearSel.value;
+                    const mo = String(monthSel.value).padStart(2,'0');
+                    const prefix = yr + '-' + mo;
+                    const availDays = dates.filter(d=>d.startsWith(prefix)).map(d=>parseInt(d.slice(8,10))).sort((a,b)=>a-b);
+                    const latestDay = parseInt(latest.slice(8,10));
+                    daySel.innerHTML = availDays.map(d => `<option value="${d}" ${d===latestDay?'selected':''}>${d}</option>`).join('');
+                }
+
+                yearSel.onchange = updateMonths;
+                monthSel.onchange = updateDays;
+                updateMonths();
             }
+        }
+
+        function goToPastDay() {
+            const yr = document.getElementById('dateYear').value;
+            const mo = String(document.getElementById('dateMonth').value).padStart(2,'0');
+            const dy = String(document.getElementById('dateDay').value).padStart(2,'0');
+            viewPastDay(yr + '-' + mo + '-' + dy);
         }
 
         function viewPastDay(dateStr) {
