@@ -47,7 +47,8 @@ SITE_LONGITUDE = 25.44748345729338
 # =============================================================================
 PACE_THRESHOLD_PCT = 0.30    # check 1: alert if actual < 30% of curve-expected
 OFFLINE_THRESHOLD  = 0.01    # kWh — treat as offline below this
-HISTORY_DAYS       = 30      # Days to keep in rolling history
+HISTORY_DAYS       = 30
+REPORT_UTC_OFFSET  = 2        # FusionSolar reports are UTC; +2 for SAST      # Days to keep in rolling history
 
 _HERE       = Path(__file__).parent
 RAW_FILE    = _HERE / "data" / "raw_report.xlsx"
@@ -145,7 +146,7 @@ def parse_report(filepath: Path) -> dict:
             continue
         try:
             ts   = pd.Timestamp(ts_raw)
-            hour = ts.hour
+            hour = (ts.hour + REPORT_UTC_OFFSET) % 24
             if report_date is None:
                 report_date = ts.strftime("%Y-%m-%d")
         except Exception:
