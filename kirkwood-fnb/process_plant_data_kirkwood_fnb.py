@@ -214,6 +214,7 @@ def calculate_30day_stats(history: dict) -> dict:
             "hourly_p25": [0] * 24,
             "hourly_p75": [0] * 24,
             "hourly_p90": [0] * 24,
+            "hourly_irrad_avg": [0] * 24,
             "daily_min": 0,
             "daily_max": 0,
             "daily_avg": 0,
@@ -258,6 +259,21 @@ def calculate_30day_stats(history: dict) -> dict:
         hourly_p75.append(round(percentile(vals, 75), 2))
         hourly_p90.append(round(percentile(vals, 90), 2))
     
+    # Calculate average irradiation per hour
+    irrad_values = [[] for _ in range(24)]
+    for date, day_data in history.items():
+        irrad = day_data.get("irradiation", [0] * 24)
+        total_chk = day_data.get("total_kwh", 0)
+        if total_chk > 0:
+            for hour in range(24):
+                if hour < len(irrad):
+                    irrad_values[hour].append(irrad[hour])
+    
+    hourly_irrad_avg = [
+        round(sum(v) / len(v), 1) if v else 0
+        for v in irrad_values
+    ]
+    
     return {
         "hourly_avg": hourly_avg,
         "hourly_min": hourly_min,
@@ -266,6 +282,7 @@ def calculate_30day_stats(history: dict) -> dict:
         "hourly_p25": hourly_p25,
         "hourly_p75": hourly_p75,
         "hourly_p90": hourly_p90,
+        "hourly_irrad_avg": hourly_irrad_avg,
         "daily_min": round(min(daily_totals), 1) if daily_totals else 0,
         "daily_max": round(max(daily_totals), 1) if daily_totals else 0,
         "daily_avg": round(sum(daily_totals) / len(daily_totals), 1) if daily_totals else 0,
@@ -277,7 +294,7 @@ def calculate_30day_stats(history: dict) -> dict:
 # Status checks
 # =============================================================================
 
-def determine_status(data: dict, month: int, stats: dict) -> tuple:
+def determine_status(data: dict, month: int, stats: dict, irradiation: list = None) -> tuple:
     total           = data["total_kwh"]
     hour            = data["last_hour"]
     sunrise, sunset = solar_window(month)
@@ -289,6 +306,7 @@ def determine_status(data: dict, month: int, stats: dict) -> tuple:
             "reason": "no generation detected",
             "curve_fraction": 0.0, "expected_by_now": 0.0,
             "pace_trigger": 0.0, "projected_total": 0.0,
+            "irrad_factor": 1.0,
             "sunrise": round(sunrise, 2), "sunset": round(sunset, 2),
         }
 
@@ -300,10 +318,22 @@ def determine_status(data: dict, month: int, stats: dict) -> tuple:
             "curve_fraction": round(curve_frac, 3),
             "expected_by_now": round(DAILY_EXPECTED_KWH * curve_frac, 1),
             "pace_trigger": 0.0, "projected_total": 0.0,
+            "irrad_factor": 1.0,
             "sunrise": round(sunrise, 2), "sunset": round(sunset, 2),
         }
 
-    expected_by_now  = DAILY_EXPECTED_KWH * curve_frac
+    # ── Irradiation scaling ────────────────────────────────────────
+    irrad_factor = 1.0
+    if irradiation and stats.get("hourly_irrad_avg"):
+        avg_irrad = stats["hourly_irrad_avg"]
+        today_cum = sum(irradiation[:hour + 1])
+        avg_cum   = sum(avg_irrad[:hour + 1])
+        if avg_cum > 0:
+            irrad_factor = min(today_cum / avg_cum, 1.5)
+            irrad_factor = max(irrad_factor, 0.1)
+            print(f"  🌤️  Irrad factor: {irrad_factor:.2f} (today {today_cum:.0f} vs avg {avg_cum:.0f} W/m² cumulative)")
+
+    expected_by_now  = DAILY_EXPECTED_KWH * curve_frac * irrad_factor
     pace_trigger     = expected_by_now * PACE_THRESHOLD_PCT
     projected_total  = total / curve_frac
 
@@ -320,6 +350,7 @@ def determine_status(data: dict, month: int, stats: dict) -> tuple:
     debug = {
         "curve_fraction":  round(curve_frac, 3),
         "expected_by_now": round(expected_by_now, 1),
+        "irrad_factor":    round(irrad_factor, 3),
         "actual_kwh":      round(total, 2),
         "pace_trigger":    round(pace_trigger, 1),
         "projected_total": round(projected_total, 1),
@@ -457,7 +488,7 @@ def main():
     print(f"📊 Calculating 30-day statistics...")
     stats = calculate_30day_stats(history)
     
-    status, alerts, debug = determine_status(data, month, stats)
+    status, alerts, debug = determine_status(data, month, stats, irradiation)
 
     print(f"  📅 Date:               {data['date']}")
     print(f"  ⚡ PV Yield:           {data['total_kwh']:.3f} kWh")
