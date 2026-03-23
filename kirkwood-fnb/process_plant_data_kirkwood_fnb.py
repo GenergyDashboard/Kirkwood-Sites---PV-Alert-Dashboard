@@ -240,10 +240,18 @@ def calculate_30day_stats(history: dict, exclude_date: str = None) -> dict:
         round(sum(vals) / len(vals), 2) if vals else 0
         for vals in hourly_values
     ]
-    hourly_min = [
-        round(min(vals), 2) if vals else 0
-        for vals in hourly_values
-    ]
+    hourly_min = []
+    for h in range(24):
+        vals = hourly_values[h]
+        if not vals:
+            hourly_min.append(0)
+        else:
+            # For solar hours, exclude zeros (outage days) from min
+            nonzero = [v for v in vals if v > 0]
+            if nonzero:
+                hourly_min.append(round(min(nonzero), 2))
+            else:
+                hourly_min.append(0)
     hourly_max = [
         round(max(vals), 2) if vals else 0
         for vals in hourly_values
