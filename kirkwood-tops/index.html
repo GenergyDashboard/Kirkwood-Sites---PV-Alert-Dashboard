@@ -209,8 +209,8 @@
                 chartData = {
                     labels,
                     datasets: [
-                        { type:'line', label:'Min-Max Range', data:stats.hourly_min||new Array(24).fill(0), backgroundColor:'rgba(75,85,99,0.15)', borderColor:'rgba(75,85,99,0.3)', borderWidth:1, fill:'+1', pointRadius:0, tension:0.4, order:6 },
-                        { type:'line', label:'', data:stats.hourly_max||new Array(24).fill(0), backgroundColor:'transparent', borderColor:'rgba(75,85,99,0.3)', borderWidth:1, pointRadius:0, tension:0.4, order:6 },
+                        { type:'line', label:'Min', data:stats.hourly_min||new Array(24).fill(0), backgroundColor:'rgba(120,80,40,0.12)', borderColor:'rgba(160,120,60,0.5)', borderWidth:1, fill:'+1', pointRadius:0, tension:0.4, order:6 },
+                        { type:'line', label:'', data:stats.hourly_max||new Array(24).fill(0), backgroundColor:'transparent', borderColor:'rgba(130,90,200,0.5)', borderWidth:1, pointRadius:0, tension:0.4, order:6 },
                         { type:'line', label:'P10-P90', data:stats.hourly_p10||new Array(24).fill(0), backgroundColor:'rgba(107,114,128,0.2)', borderColor:'rgba(107,114,128,0.4)', borderWidth:1, fill:'+1', pointRadius:0, tension:0.4, order:5 },
                         { type:'line', label:'', data:stats.hourly_p90||new Array(24).fill(0), backgroundColor:'transparent', borderColor:'rgba(107,114,128,0.4)', borderWidth:1, pointRadius:0, tension:0.4, order:5 },
                         { type:'line', label:'P25-P75', data:stats.hourly_p25||new Array(24).fill(0), backgroundColor:'rgba(34,197,94,0.2)', borderColor:'rgba(34,197,94,0.5)', borderWidth:1.5, fill:'+1', pointRadius:0, tension:0.4, order:4 },
