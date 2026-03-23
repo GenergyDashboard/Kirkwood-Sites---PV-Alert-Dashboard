@@ -345,7 +345,7 @@ def determine_status(data: dict, month: int, stats: dict, irradiation: list = No
         return "ok", alerts, {
             "reason": "too early to assess",
             "curve_fraction": round(curve_frac, 3),
-            "expected_by_now": round(DAILY_EXPECTED_KWH * curve_frac, 1),
+            "expected_by_now": 0.0,
             "pace_trigger": 0.0, "projected_total": 0.0,
             "irrad_factor": 1.0,
             "sunrise": round(sunrise, 2), "sunset": round(sunset, 2),
@@ -366,7 +366,7 @@ def determine_status(data: dict, month: int, stats: dict, irradiation: list = No
             irrad_factor = max(irrad_factor, 0.1)          # floor at 0.1×
             print(f"  🌤️  Irrad factor: {irrad_factor:.2f} (today {today_cum:.0f} vs avg {avg_cum:.0f} W/m² cumulative)")
 
-    expected_by_now  = DAILY_EXPECTED_KWH * curve_frac * irrad_factor
+    expected_by_now  = effective_expected * curve_frac * irrad_factor
     pace_trigger     = expected_by_now * PACE_THRESHOLD_PCT
     projected_total  = total / curve_frac
 
