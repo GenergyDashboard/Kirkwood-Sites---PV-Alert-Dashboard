@@ -359,6 +359,11 @@ def determine_status(data: dict, month: int, stats: dict, irradiation: list = No
             "sunrise": round(sunrise, 2), "sunset": round(sunset, 2),
         }
 
+    # ── Dynamic thresholds from 30-day history ────────────────────
+    effective_expected = stats.get("daily_avg", 0)
+    if effective_expected < 1:
+        effective_expected = DAILY_EXPECTED_KWH
+
     # ── Irradiation scaling ────────────────────────────────────────
     # Compare today's cumulative irradiation (up to current hour) against
     # the 30-day average cumulative irradiation at the same hour.
