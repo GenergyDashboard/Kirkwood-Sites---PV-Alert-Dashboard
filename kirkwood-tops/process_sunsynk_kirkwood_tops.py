@@ -36,8 +36,8 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID",   "")
 
 # Site location for irradiation (Kirkwood, Eastern Cape)
-SITE_LATITUDE  = -33.3937
-SITE_LONGITUDE = 25.4418
+SITE_LATITUDE  = -33.40047315873728
+SITE_LONGITUDE = 25.44748345729338
 
 # =============================================================================
 # FIXED CONFIG
