@@ -356,7 +356,9 @@ def determine_status(data: dict, month: int, stats: dict, irradiation: list = No
     if daily_min < 1:
         daily_min = DAILY_LOW_KWH
     
-    if projected_total < daily_min:
+    # Scale minimum threshold by irradiation — cloudy day = lower floor
+    adjusted_min = daily_min * irrad_factor if irrad_factor < 1.0 else daily_min
+    if projected_total < adjusted_min:
         alerts["total_low"] = True
 
     debug = {
