@@ -1,14 +1,14 @@
 {
   "plant": "Kirkwood FNB",
-  "last_updated": "2026-03-23 17:06 SAST",
+  "last_updated": "2026-03-23 18:09 SAST",
   "date": "2026-03-23",
-  "total_kwh": 73.96,
-  "last_hour": 17,
-  "status": "low",
+  "total_kwh": 76.5,
+  "last_hour": 18,
+  "status": "ok",
   "alerts": {
     "offline": false,
     "pace_low": false,
-    "total_low": true
+    "total_low": false
   },
   "today": {
     "hourly_pv": [
@@ -30,7 +30,7 @@
       9.37,
       4.68,
       3.48,
-      0.0,
+      2.54,
       0.0,
       0.0,
       0.0,
@@ -53,11 +53,11 @@
       345.0,
       355.0,
       242.0,
-      274.0,
-      257.0,
-      154.0,
-      49.0,
-      3.0,
+      223.0,
+      194.0,
+      136.0,
+      42.0,
+      2.0,
       0,
       0,
       0,
@@ -83,7 +83,7 @@
     9.37,
     4.68,
     3.48,
-    0.0,
+    2.54,
     0.0,
     0.0,
     0.0,
@@ -106,11 +106,11 @@
     345.0,
     355.0,
     242.0,
-    274.0,
-    257.0,
-    154.0,
-    49.0,
-    3.0,
+    223.0,
+    194.0,
+    136.0,
+    42.0,
+    2.0,
     0,
     0,
     0,
@@ -503,7 +503,7 @@
       "last_hour": 23
     },
     "2026-03-23": {
-      "total_kwh": 73.96,
+      "total_kwh": 76.5,
       "hourly": [
         0.0,
         0.0,
@@ -523,7 +523,7 @@
         9.37,
         4.68,
         3.48,
-        0.0,
+        2.54,
         0.0,
         0.0,
         0.0,
@@ -546,18 +546,18 @@
         345.0,
         355.0,
         242.0,
-        274.0,
-        257.0,
-        154.0,
-        49.0,
-        3.0,
+        223.0,
+        194.0,
+        136.0,
+        42.0,
+        2.0,
         0,
         0,
         0,
         0
       ],
-      "last_updated": "2026-03-23 17:06 SAST",
-      "last_hour": 17
+      "last_updated": "2026-03-23 18:09 SAST",
+      "last_hour": 18
     }
   },
   "thresholds": {
@@ -571,17 +571,17 @@
   },
   "debug": {
     "curve_fraction": 1.0,
-    "expected_by_now": 91.4,
-    "irrad_factor": 0.523,
-    "actual_kwh": 73.96,
-    "pace_trigger": 27.4,
-    "projected_total": 74.0,
+    "expected_by_now": 85.6,
+    "irrad_factor": 0.49,
+    "actual_kwh": 76.5,
+    "pace_trigger": 25.7,
+    "projected_total": 76.5,
     "low_day_kwh": 152.0,
     "sunrise": 5.92,
     "sunset": 18.08,
     "checks": {
       "pace_low": false,
-      "total_low": true
+      "total_low": false
     }
   }
 }
