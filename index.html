@@ -174,10 +174,10 @@
         }
 
         .site-info {
-            padding: 18px 20px;
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 15px;
+            padding: 16px 20px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
 
         .site-left {
@@ -187,9 +187,9 @@
 
         .site-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            gap: 10px;
+            margin-bottom: 6px;
         }
 
         .site-name {
@@ -210,11 +210,11 @@
         .status-indicator.offline { background: #ef4444; color: #ef4444; }
 
         .site-production {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 700;
             line-height: 1;
             color: #fff;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .site-status {
@@ -227,17 +227,18 @@
         .site-status.offline { color: #ef4444; }
 
         .site-chart-wrapper {
-            width: 200px;
-            height: 100px;
+            width: 100%;
+            height: 150px;
             position: relative;
+            padding: 0 12px 12px;
         }
 
         .site-chart-container {
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
         }
 
         .refresh-btn {
@@ -279,14 +280,6 @@
         @media (max-width: 900px) {
             .sites-grid {
                 grid-template-columns: 1fr;
-            }
-            .site-info {
-                grid-template-columns: 1fr;
-            }
-            .site-chart-wrapper {
-                width: 100%;
-                height: 120px;
-                margin-top: 10px;
             }
         }
     </style>
@@ -442,10 +435,10 @@
                         <div class="site-production">${(site.total_kwh || 0).toFixed(1)} <span style="font-size: 1rem; color: #9ca3af;">kWh</span></div>
                         <div class="site-status ${site.status}">System ${(site.status || 'offline').toUpperCase()}</div>
                     </div>
-                    <div class="site-chart-wrapper">
-                        <div class="site-chart-container">
-                            <canvas id="${chartId}"></canvas>
-                        </div>
+                </div>
+                <div class="site-chart-wrapper">
+                    <div class="site-chart-container">
+                        <canvas id="${chartId}"></canvas>
                     </div>
                 </div>
             `;
@@ -468,6 +461,15 @@
             }
 
             let datasets;
+
+            // Helper: truncate at last producing hour
+            function truncateAtLastHour(arr) {
+                let last = 0;
+                for (let i = arr.length - 1; i >= 0; i--) {
+                    if (arr[i] > 0) { last = i; break; }
+                }
+                return arr.map((v, i) => i <= last ? v : null);
+            }
 
             if (currentMiniMode === 'today') {
                 datasets = [
@@ -495,30 +497,30 @@
                     }
                 ];
             } else {
-                // 30-Day Average: percentile bands + median
+                // 30-Day Average: Min/Max + P25-P75 band + Median (blue) + Today Actual (green)
                 datasets = [
                     {
                         type: 'line',
                         label: 'Min',
                         data: stats.hourly_min || new Array(24).fill(0),
-                        backgroundColor: 'rgba(75, 85, 99, 0.12)',
-                        borderColor: 'rgba(75, 85, 99, 0.25)',
-                        borderWidth: 0.5,
+                        backgroundColor: 'rgba(120, 80, 40, 0.10)',
+                        borderColor: 'rgba(180, 140, 60, 0.7)',
+                        borderWidth: 1,
                         fill: '+1',
                         pointRadius: 0,
                         tension: 0.4,
-                        order: 5
+                        order: 6
                     },
                     {
                         type: 'line',
-                        label: '',
+                        label: 'Max',
                         data: stats.hourly_max || new Array(24).fill(0),
                         backgroundColor: 'transparent',
-                        borderColor: 'rgba(75, 85, 99, 0.25)',
-                        borderWidth: 0.5,
+                        borderColor: 'rgba(150, 100, 220, 0.7)',
+                        borderWidth: 1,
                         pointRadius: 0,
                         tension: 0.4,
-                        order: 5
+                        order: 6
                     },
                     {
                         type: 'line',
@@ -530,7 +532,7 @@
                         fill: '+1',
                         pointRadius: 0,
                         tension: 0.4,
-                        order: 3
+                        order: 4
                     },
                     {
                         type: 'line',
@@ -541,15 +543,27 @@
                         borderWidth: 0.5,
                         pointRadius: 0,
                         tension: 0.4,
-                        order: 3
+                        order: 4
                     },
                     {
                         type: 'line',
                         label: 'Median',
                         data: stats.hourly_avg || new Array(24).fill(0),
-                        borderColor: '#22c55e',
+                        borderColor: '#60a5fa',
                         borderWidth: 1.5,
                         borderDash: [4, 3],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        order: 2
+                    },
+                    {
+                        type: 'line',
+                        label: 'Today',
+                        data: truncateAtLastHour(hourlyPv),
+                        borderColor: '#22c55e',
+                        borderWidth: 1.5,
+                        borderDash: [4, 2],
                         fill: false,
                         pointRadius: 0,
                         tension: 0.4,
