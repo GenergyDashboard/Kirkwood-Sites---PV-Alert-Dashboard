@@ -400,10 +400,10 @@
                     datasets: [
                         {
                             type: 'line',
-                            label: 'Min-Max Range',
+                            label: 'Min',
                             data: stats.hourly_min || new Array(24).fill(0),
-                            backgroundColor: 'rgba(75, 85, 99, 0.15)',
-                            borderColor: 'rgba(75, 85, 99, 0.3)',
+                            backgroundColor: 'rgba(120, 80, 40, 0.12)',
+                            borderColor: 'rgba(160, 120, 60, 0.5)',
                             borderWidth: 1,
                             fill: '+1',
                             pointRadius: 0,
@@ -415,7 +415,7 @@
                             label: '',
                             data: stats.hourly_max || new Array(24).fill(0),
                             backgroundColor: 'transparent',
-                            borderColor: 'rgba(75, 85, 99, 0.3)',
+                            borderColor: 'rgba(130, 90, 200, 0.5)',
                             borderWidth: 1,
                             pointRadius: 0,
                             tension: 0.4,
