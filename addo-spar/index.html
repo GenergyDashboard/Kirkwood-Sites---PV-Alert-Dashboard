@@ -579,7 +579,10 @@
                         borderColor: 'rgba(255, 255, 255, 0.1)',
                         borderWidth: 1,
                         padding: 12,
-                        displayColors: true
+                        displayColors: true,
+                        filter: function(item) {
+                            return item.dataset.label !== '';
+                        }
                     }
                 },
                 scales: {
