@@ -256,13 +256,13 @@
             display: flex;
             align-items: center;
             gap: 3px;
-            font-size: 0.55rem;
+            font-size: 0.65rem;
             color: #6b7280;
         }
 
         .mini-legend-swatch {
-            width: 10px;
-            height: 3px;
+            width: 14px;
+            height: 4px;
             border-radius: 1px;
         }
 
@@ -384,6 +384,9 @@
         let allSitesData = [];
         let siteCharts = {};
         let currentMiniMode = 'today';
+
+        // Crisp rendering on high-DPI and zoom
+        Chart.defaults.devicePixelRatio = window.devicePixelRatio * 2 || 2;
 
         loadAllSites();
         setInterval(loadAllSites, 3600000);
@@ -683,7 +686,7 @@
                             },
                             ticks: {
                                 color: '#4b5563',
-                                font: { size: 7 },
+                                font: { size: 9 },
                                 maxTicksLimit: 6
                             }
                         },
@@ -695,7 +698,7 @@
                             },
                             ticks: {
                                 color: '#4b5563',
-                                font: { size: 7 },
+                                font: { size: 9 },
                                 maxTicksLimit: 4
                             }
                         },
