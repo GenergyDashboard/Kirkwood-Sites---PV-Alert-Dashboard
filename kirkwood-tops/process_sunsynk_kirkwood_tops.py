@@ -285,10 +285,21 @@ def determine_status(total: float, last_hour: int, month: int, stats: dict, irra
     alerts = {"offline": False, "pace_low": False, "total_low": False}
     sunrise, sunset = solar_window(month)
 
+    # Nighttime — no alerts outside solar window
+    if last_hour < int(sunrise) or last_hour >= int(sunset):
+        return "ok", alerts, {
+            "reason": "outside solar window (nighttime)",
+            "curve_fraction": 0.0, "expected_by_now": 0.0,
+            "pace_trigger": 0.0, "projected_total": 0.0,
+            "irrad_factor": 1.0,
+            "sunrise": round(sunrise, 2), "sunset": round(sunset, 2),
+        }
+
+    # Offline (during daylight)
     if total < OFFLINE_THRESHOLD:
         alerts["offline"] = True
         return "offline", alerts, {
-            "reason": "no generation detected",
+            "reason": "no generation detected during daylight",
             "curve_fraction": 0.0, "expected_by_now": 0.0,
             "pace_trigger": 0.0, "projected_total": 0.0,
             "irrad_factor": 1.0,
@@ -334,7 +345,9 @@ def determine_status(total: float, last_hour: int, month: int, stats: dict, irra
     if daily_min < 1:
         daily_min = DAILY_LOW_KWH
     
-    if projected_total < daily_min:
+    # Scale minimum threshold by irradiation — cloudy day = lower floor
+    adjusted_min = daily_min * irrad_factor if irrad_factor < 1.0 else daily_min
+    if projected_total < adjusted_min:
         alerts["total_low"] = True
 
     debug = {
