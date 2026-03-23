@@ -80,27 +80,44 @@
             align-items: center;
             gap: 10px;
             margin-top: 15px;
-            padding: 12px 16px;
+            padding: 14px 18px;
             background: rgba(10, 15, 26, 0.5);
             border-radius: 10px;
+            flex-wrap: wrap;
         }
 
         .date-picker-row.show { display: flex; }
 
-        .date-picker-row input[type="date"] {
+        .date-picker-row select {
             background: rgba(15, 20, 25, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 6px;
             color: #e2e8f0;
-            padding: 6px 12px;
-            font-size: 0.85rem;
+            padding: 8px 12px;
+            font-size: 0.9rem;
             cursor: pointer;
+            appearance: auto;
         }
 
         .date-picker-row label {
             color: #9ca3af;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
+
+        .date-picker-row .go-btn {
+            padding: 8px 18px;
+            border-radius: 6px;
+            border: none;
+            background: #3b82f6;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .date-picker-row .go-btn:hover { background: #2563eb; }
 
         .loading { text-align: center; padding: 100px; font-size: 1.3rem; color: #94a3b8; }
         @media (max-width: 768px) { .chart-container { height: 350px; } }
@@ -151,8 +168,11 @@
                 </div>
             </div>
             <div class="date-picker-row" id="datePicker">
-                <label>Select date:</label>
-                <input type="date" id="dateInput" onchange="viewPastDay(this.value)">
+                <label>View past day:</label>
+                <select id="dateDay"></select>
+                <select id="dateMonth"></select>
+                <select id="dateYear"></select>
+                <button class="go-btn" onclick="goToPastDay()">View</button>
             </div>
             <div class="chart-container">
                 <canvas id="hourlyChart"></canvas>
@@ -164,6 +184,9 @@
     <script>
         const SITE_CONFIG = { name: "Kirkwood Spar", dataUrl: "./data/processed.json" };
         let dashboardData = null, hourlyChart = null, currentChartMode = 'today';
+
+        // Crisp rendering on high-DPI and zoom
+        Chart.defaults.devicePixelRatio = window.devicePixelRatio * 2 || 2;
 
         loadData();
         setInterval(loadData, 3600000);
