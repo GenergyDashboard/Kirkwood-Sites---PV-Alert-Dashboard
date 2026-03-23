@@ -117,6 +117,38 @@
             color: #fb923c;
         }
 
+        /* ── Chart mode toggle ─────────────────────────────── */
+        .chart-mode-bar {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .mode-btn {
+            padding: 7px 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 20, 25, 0.4);
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.25s;
+        }
+
+        .mode-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            color: #60a5fa;
+        }
+
+        .mode-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: #fff;
+        }
+
         .sites-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -278,6 +310,11 @@
             </div>
         </div>
 
+        <div class="chart-mode-bar">
+            <button class="mode-btn active" onclick="switchMiniMode('today', this)">Today</button>
+            <button class="mode-btn" onclick="switchMiniMode('average', this)">30-Day Average</button>
+        </div>
+
         <div id="sitesContainer" class="sites-grid">
             <div class="loading">Loading site data...</div>
         </div>
@@ -313,6 +350,7 @@
 
         let allSitesData = [];
         let siteCharts = {};
+        let currentMiniMode = 'today';
 
         loadAllSites();
         setInterval(loadAllSites, 3600000);
@@ -348,7 +386,6 @@
         }
 
         function getHourlyPv(site) {
-            // Support both nested (today.hourly_pv) and flat (hourly_pv) formats
             if (site.today && site.today.hourly_pv) return site.today.hourly_pv;
             return site.hourly_pv || new Array(24).fill(0);
         }
@@ -430,46 +467,109 @@
                 siteCharts[chartId].destroy();
             }
 
-            // Mini bar chart matching the full dashboard style
+            let datasets;
+
+            if (currentMiniMode === 'today') {
+                datasets = [
+                    {
+                        type: 'line',
+                        label: 'Avg',
+                        data: stats.hourly_avg || new Array(24).fill(0),
+                        borderColor: 'rgba(156, 163, 184, 0.6)',
+                        borderWidth: 1,
+                        borderDash: [3, 2],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        order: 1
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Today',
+                        data: hourlyPv,
+                        backgroundColor: '#22c55e',
+                        borderWidth: 0,
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.9,
+                        order: 2
+                    }
+                ];
+            } else {
+                // 30-Day Average: percentile bands + median
+                datasets = [
+                    {
+                        type: 'line',
+                        label: 'Min',
+                        data: stats.hourly_min || new Array(24).fill(0),
+                        backgroundColor: 'rgba(75, 85, 99, 0.12)',
+                        borderColor: 'rgba(75, 85, 99, 0.25)',
+                        borderWidth: 0.5,
+                        fill: '+1',
+                        pointRadius: 0,
+                        tension: 0.4,
+                        order: 5
+                    },
+                    {
+                        type: 'line',
+                        label: '',
+                        data: stats.hourly_max || new Array(24).fill(0),
+                        backgroundColor: 'transparent',
+                        borderColor: 'rgba(75, 85, 99, 0.25)',
+                        borderWidth: 0.5,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        order: 5
+                    },
+                    {
+                        type: 'line',
+                        label: 'P25-P75',
+                        data: stats.hourly_p25 || new Array(24).fill(0),
+                        backgroundColor: 'rgba(34, 197, 94, 0.18)',
+                        borderColor: 'rgba(34, 197, 94, 0.4)',
+                        borderWidth: 0.5,
+                        fill: '+1',
+                        pointRadius: 0,
+                        tension: 0.4,
+                        order: 3
+                    },
+                    {
+                        type: 'line',
+                        label: '',
+                        data: stats.hourly_p75 || new Array(24).fill(0),
+                        backgroundColor: 'transparent',
+                        borderColor: 'rgba(34, 197, 94, 0.4)',
+                        borderWidth: 0.5,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        order: 3
+                    },
+                    {
+                        type: 'line',
+                        label: 'Median',
+                        data: stats.hourly_avg || new Array(24).fill(0),
+                        borderColor: '#22c55e',
+                        borderWidth: 1.5,
+                        borderDash: [4, 3],
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        order: 1
+                    }
+                ];
+            }
+
             siteCharts[chartId] = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: hours,
-                    datasets: [
-                        {
-                            type: 'line',
-                            label: 'Avg',
-                            data: stats.hourly_avg || new Array(24).fill(0),
-                            borderColor: 'rgba(156, 163, 184, 0.6)',
-                            borderWidth: 1,
-                            borderDash: [3, 2],
-                            fill: false,
-                            pointRadius: 0,
-                            tension: 0.4,
-                            order: 1
-                        },
-                        {
-                            type: 'bar',
-                            label: 'Today',
-                            data: hourlyPv,
-                            backgroundColor: '#22c55e',
-                            borderWidth: 0,
-                            barPercentage: 0.8,
-                            categoryPercentage: 0.9,
-                            order: 2
-                        }
-                    ]
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            enabled: false
-                        }
+                        legend: { display: false },
+                        tooltip: { enabled: false }
                     },
                     scales: {
                         x: {
@@ -497,6 +597,17 @@
                         }
                     }
                 }
+            });
+        }
+
+        function switchMiniMode(mode, btn) {
+            currentMiniMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Re-render all mini charts without rebuilding the cards
+            allSitesData.forEach(site => {
+                renderSiteChart(site);
             });
         }
     </script>
