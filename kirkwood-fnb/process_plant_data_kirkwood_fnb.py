@@ -204,7 +204,7 @@ def percentile(sorted_vals: list, p: float) -> float:
     return sorted_vals[f] + d * (sorted_vals[c] - sorted_vals[f])
 
 
-def calculate_30day_stats(history: dict) -> dict:
+def calculate_30day_stats(history: dict, exclude_date: str = None) -> dict:
     if not history:
         return {
             "hourly_avg": [0] * 24,
@@ -225,6 +225,8 @@ def calculate_30day_stats(history: dict) -> dict:
     daily_totals = []
     
     for date, day_data in history.items():
+        if date == exclude_date:
+            continue  # Skip today's partial data
         hourly = day_data.get("hourly", [0] * 24)
         total = day_data.get("total_kwh", 0)
         
@@ -262,6 +264,8 @@ def calculate_30day_stats(history: dict) -> dict:
     # Calculate average irradiation per hour
     irrad_values = [[] for _ in range(24)]
     for date, day_data in history.items():
+        if date == exclude_date:
+            continue
         irrad = day_data.get("irradiation", [0] * 24)
         total_chk = day_data.get("total_kwh", 0)
         if total_chk > 0:
@@ -486,7 +490,7 @@ def main():
     save_history(history)
     
     print(f"📊 Calculating 30-day statistics...")
-    stats = calculate_30day_stats(history)
+    stats = calculate_30day_stats(history, exclude_date=data["date"])
     
     status, alerts, debug = determine_status(data, month, stats, irradiation)
 
