@@ -210,7 +210,7 @@ def percentile(sorted_vals: list, p: float) -> float:
     return sorted_vals[f] + d * (sorted_vals[c] - sorted_vals[f])
 
 
-def calculate_30day_stats(history: dict) -> dict:
+def calculate_30day_stats(history: dict, exclude_date: str = None) -> dict:
     """
     Calculate 30-day statistics:
     - hourly_avg: average PV for each hour [0-23] over last 30 days
@@ -242,6 +242,8 @@ def calculate_30day_stats(history: dict) -> dict:
     daily_totals = []
     
     for date, day_data in history.items():
+        if date == exclude_date:
+            continue  # Skip today's partial data
         hourly = day_data.get("hourly", [0] * 24)
         total = day_data.get("total_kwh", 0)
         
@@ -532,7 +534,7 @@ def main():
     
     # Calculate 30-day stats
     print(f"📊 Calculating 30-day statistics...")
-    stats = calculate_30day_stats(history)
+    stats = calculate_30day_stats(history, exclude_date=data["date"])
     
     # Determine status
     status, alerts, debug = determine_status(data, month, stats, irradiation)
