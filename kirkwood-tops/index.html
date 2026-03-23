@@ -75,6 +75,33 @@
             font-size: 0.85rem; text-align: left; cursor: pointer; transition: background 0.15s;
         }
         .more-menu button:hover { background: rgba(59,130,246,0.15); color: #fff; }
+        .date-picker-row {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 12px 16px;
+            background: rgba(10, 15, 26, 0.5);
+            border-radius: 10px;
+        }
+
+        .date-picker-row.show { display: flex; }
+
+        .date-picker-row input[type="date"] {
+            background: rgba(15, 20, 25, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            color: #e2e8f0;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .date-picker-row label {
+            color: #9ca3af;
+            font-size: 0.8rem;
+        }
+
         .loading { text-align: center; padding: 100px; font-size: 1.3rem; color: #94a3b8; }
         @media (max-width: 768px) { .chart-container { height: 350px; } }
     </style>
@@ -117,9 +144,15 @@
                         <button class="more-btn" onclick="toggleMore()">More &#9660;</button>
                         <div class="more-menu" id="moreMenu">
                             <button onclick="switchChartMode('history', this); closeMore()">Daily History</button>
+                            <button onclick="showDatePicker(); closeMore()">View Past Day</button>
+                            <button onclick="exportCSV(); closeMore()">Export CSV</button>
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="date-picker-row" id="datePicker">
+                <label>Select date:</label>
+                <input type="date" id="dateInput" onchange="viewPastDay(this.value)">
             </div>
             <div class="chart-container">
                 <canvas id="hourlyChart"></canvas>
