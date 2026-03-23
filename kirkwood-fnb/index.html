@@ -332,6 +332,16 @@
             }
         }
 
+
+        function truncateAtLastHour(arr) {
+            // Find last non-zero hour and null out everything after
+            let last = 0;
+            for (let i = arr.length - 1; i >= 0; i--) {
+                if (arr[i] > 0) { last = i; break; }
+            }
+            return arr.map((v, i) => i <= last ? v : null);
+        }
+
         function updateChart() {
             const hours = Array.from({length: 24}, (_, i) => i);
             const today = dashboardData.today || {};
@@ -481,7 +491,7 @@
                         {
                             type: 'line',
                             label: 'Today Actual',
-                            data: hourlyPv,
+                            data: truncateAtLastHour(hourlyPv),
                             borderColor: '#22c55e',
                             borderWidth: 2,
                             borderDash: [6, 3],
