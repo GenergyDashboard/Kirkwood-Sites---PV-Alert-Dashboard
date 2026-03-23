@@ -226,6 +226,46 @@
         .site-status.low { color: #fb923c; }
         .site-status.offline { color: #ef4444; }
 
+        .site-stats-row {
+            display: flex;
+            gap: 12px;
+            padding: 0 20px 6px;
+        }
+
+        .site-stat-badge {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #9ca3af;
+        }
+
+        .site-stat-badge.good { color: #22c55e; }
+        .site-stat-badge.warn { color: #fb923c; }
+        .site-stat-badge.bad { color: #ef4444; }
+
+        .mini-legend {
+            display: flex;
+            gap: 8px;
+            padding: 2px 14px 4px;
+            flex-wrap: wrap;
+        }
+
+        .mini-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.55rem;
+            color: #6b7280;
+        }
+
+        .mini-legend-swatch {
+            width: 10px;
+            height: 3px;
+            border-radius: 1px;
+        }
+
         .site-chart-wrapper {
             width: 100%;
             height: 150px;
@@ -424,6 +464,33 @@
             card.onclick = () => window.open(site.dashboardUrl, '_blank');
 
             const chartId = `chart-${site.name.replace(/\s+/g, '-').toLowerCase()}`;
+            const stats = site.stats_30day || {};
+            const dailyAvg = stats.daily_avg || 0;
+            const totalKwh = site.total_kwh || 0;
+            
+            // % of 30-day average
+            const pctOfAvg = dailyAvg > 0 ? Math.round((totalKwh / dailyAvg) * 100) : 0;
+            const pctClass = pctOfAvg >= 70 ? 'good' : pctOfAvg >= 40 ? 'warn' : 'bad';
+            
+            // Pace: compare today's hourly total to expected at this hour
+            const hourlyPv = getHourlyPv(site);
+            const hourlyAvg = stats.hourly_avg || [];
+            const lastHour = site.last_hour || 0;
+            const expectedByNow = hourlyAvg.slice(0, lastHour + 1).reduce((a, b) => a + b, 0);
+            const paceRatio = expectedByNow > 0 ? Math.round((totalKwh / expectedByNow) * 100) : 0;
+            const paceClass = paceRatio >= 80 ? 'good' : paceRatio >= 50 ? 'warn' : 'bad';
+
+            // Legend items depend on mode
+            const todayLegend = `
+                <div class="mini-legend-item"><div class="mini-legend-swatch" style="background:#22c55e;"></div>PV</div>
+                <div class="mini-legend-item"><div class="mini-legend-swatch" style="background:rgba(202,138,4,0.7);"></div>Irrad</div>
+                <div class="mini-legend-item"><div class="mini-legend-swatch" style="background:rgba(96,165,250,0.6);border-top:1px dashed rgba(96,165,250,0.6);height:0;"></div>Avg</div>
+            `;
+            const avgLegend = `
+                <div class="mini-legend-item"><div class="mini-legend-swatch" style="background:#22c55e;border-top:1px dashed #22c55e;height:0;"></div>Today</div>
+                <div class="mini-legend-item"><div class="mini-legend-swatch" style="background:#60a5fa;border-top:1px dashed #60a5fa;height:0;"></div>Median</div>
+                <div class="mini-legend-item"><div class="mini-legend-swatch" style="background:rgba(34,197,94,0.3);"></div>P25-75</div>
+            `;
 
             card.innerHTML = `
                 <div class="site-info">
@@ -432,9 +499,16 @@
                             <div class="site-name">${site.name}</div>
                             <div class="status-indicator ${site.status}"></div>
                         </div>
-                        <div class="site-production">${(site.total_kwh || 0).toFixed(1)} <span style="font-size: 1rem; color: #9ca3af;">kWh</span></div>
+                        <div class="site-production">${totalKwh.toFixed(1)} <span style="font-size: 1rem; color: #9ca3af;">kWh</span></div>
                         <div class="site-status ${site.status}">System ${(site.status || 'offline').toUpperCase()}</div>
                     </div>
+                    <div style="text-align: right;">
+                        <div class="site-stat-badge ${pctClass}">${pctOfAvg}% of avg</div>
+                        <div class="site-stat-badge ${paceClass}" style="margin-top:4px;">${paceRatio}% pace</div>
+                    </div>
+                </div>
+                <div class="mini-legend" id="legend-${chartId}">
+                    ${currentMiniMode === 'today' ? todayLegend : avgLegend}
                 </div>
                 <div class="site-chart-wrapper">
                     <div class="site-chart-container">
@@ -455,6 +529,7 @@
             const hours = Array.from({length: 24}, (_, i) => i);
             const hourlyPv = getHourlyPv(site);
             const stats = site.stats_30day || {};
+            const irradiation = (site.today && site.today.irradiation) || site.irradiation || new Array(24).fill(0);
 
             if (siteCharts[chartId]) {
                 siteCharts[chartId].destroy();
@@ -475,9 +550,22 @@
                 datasets = [
                     {
                         type: 'line',
+                        label: 'Irradiation',
+                        data: irradiation,
+                        backgroundColor: 'rgba(133, 77, 14, 0.5)',
+                        borderColor: 'rgba(202, 138, 4, 0.7)',
+                        borderWidth: 0.5,
+                        fill: true,
+                        yAxisID: 'y1',
+                        pointRadius: 0,
+                        tension: 0.4,
+                        order: 3
+                    },
+                    {
+                        type: 'line',
                         label: 'Avg',
                         data: stats.hourly_avg || new Array(24).fill(0),
-                        borderColor: 'rgba(156, 163, 184, 0.6)',
+                        borderColor: 'rgba(96, 165, 250, 0.6)',
                         borderWidth: 1,
                         borderDash: [3, 2],
                         fill: false,
@@ -608,7 +696,15 @@
                                 font: { size: 7 },
                                 maxTicksLimit: 4
                             }
-                        }
+                        },
+                        ...(currentMiniMode === 'today' ? {
+                            y1: {
+                                beginAtZero: true,
+                                position: 'right',
+                                display: false,
+                                grid: { drawOnChartArea: false }
+                            }
+                        } : {})
                     }
                 }
             });
@@ -619,10 +715,15 @@
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            // Re-render all mini charts without rebuilding the cards
+            // Rebuild cards (legends change between modes) and re-render charts
+            const container = document.getElementById('sitesContainer');
+            container.innerHTML = '';
             allSitesData.forEach(site => {
-                renderSiteChart(site);
+                container.appendChild(createSiteCard(site));
             });
+            setTimeout(() => {
+                allSitesData.forEach(site => renderSiteChart(site));
+            }, 100);
         }
     </script>
 </body>
