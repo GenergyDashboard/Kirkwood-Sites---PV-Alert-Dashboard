@@ -1,7 +1,7 @@
 """
-process_plant_data_kirkwood_fnb.py
+process_plant_data_kirkwood_spar.py
 
-Enhanced processor for Kirkwood FNB that:
+Enhanced processor for Kirkwood Spar that:
 - Stores historical daily data
 - Fetches irradiation from Open-Meteo API
 - Calculates 30-day hourly averages (bell curve baseline)
@@ -25,8 +25,8 @@ import requests
 # =============================================================================
 # ✏️  SITE THRESHOLDS — only these two values change between sites
 # =============================================================================
-DAILY_EXPECTED_KWH = 214.0   # Average good day for this site (kWh)
-DAILY_LOW_KWH      = 36.0    # Known worst/low production day (kWh)
+DAILY_EXPECTED_KWH = 670.0   # Average good day for this site (kWh)
+DAILY_LOW_KWH      = 129.0   # Known worst/low production day (kWh)
 
 # PV Yield column fallback — 0-based (A=0, B=1, C=2, D=3, E=4, F=5...)
 PV_COLUMN_INDEX    = 4        # default = column E
@@ -34,7 +34,7 @@ PV_COLUMN_INDEX    = 4        # default = column E
 # =============================================================================
 # 🔒 SECRETS — set in GitHub repo Settings → Secrets → Actions
 # =============================================================================
-PLANT_NAME         = os.environ.get("PLANT_NAME", "Kirkwood FNB")
+PLANT_NAME         = os.environ.get("PLANT_NAME", "Kirkwood Spar")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID",   "")
 
@@ -59,11 +59,10 @@ SAST = timezone(timedelta(hours=2))
 
 
 # =============================================================================
-# Solar curve — Johannesburg seasonal sunrise/sunset + sine bell
+# Solar curve — seasonal sunrise/sunset + sine bell
 # =============================================================================
 
 def solar_window(month: int) -> tuple:
-    """Seasonal sunrise/sunset for Johannesburg (26°S)."""
     mid_day   = (month - 1) * 30 + 15
     amplitude = 0.75
     angle     = 2 * math.pi * (mid_day - 355) / 365
@@ -72,7 +71,6 @@ def solar_window(month: int) -> tuple:
 
 
 def solar_curve_fraction(hour: int, month: int) -> float:
-    """Fraction of day's total PV energy expected by end of `hour`."""
     sunrise, sunset = solar_window(month)
     solar_day = sunset - sunrise
     if solar_day <= 0:
@@ -90,10 +88,6 @@ def solar_curve_fraction(hour: int, month: int) -> float:
 # =============================================================================
 
 def fetch_irradiation(date_str: str) -> list:
-    """
-    Fetch hourly GHI (Global Horizontal Irradiance) for the given date.
-    Returns list of 24 hourly values in W/m².
-    """
     try:
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
@@ -521,7 +515,6 @@ def main():
         "status": status,
         "alerts": alerts,
         
-        # Current day data
         "today": {
             "hourly_pv": data["hourly"],
             "irradiation": irradiation,
@@ -531,13 +524,9 @@ def main():
         "hourly_pv": data["hourly"],
         "irradiation": irradiation,
         
-        # 30-day statistics (for chart baselines)
         "stats_30day": stats,
-        
-        # Historical data (last 30 days for export/filtering)
         "history": history,
         
-        # Thresholds and debug
         "thresholds": {
             "expected_daily_kwh": DAILY_EXPECTED_KWH,
             "low_day_kwh": stats.get("daily_min", DAILY_LOW_KWH),
