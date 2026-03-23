@@ -125,9 +125,11 @@ def load_json(path: Path) -> dict | None:
         return None
 
 
-def build_hourly(current: dict, prev: dict | None, today: str) -> list:
+def build_hourly(current: dict, prev: dict | None, today: str, irradiation: list = None) -> list:
     """
     Load persisted hourly accumulator for today, then apply the latest delta.
+    If hours were missed between runs, distribute the delta proportionally
+    across the gap using irradiation weights (or evenly if no irradiation).
     Returns a 24-element list of kWh per hour.
     """
     acc_data = load_json(HOURLY_FILE)
@@ -142,17 +144,46 @@ def build_hourly(current: dict, prev: dict | None, today: str) -> list:
     if prev is None:
         print("  ℹ️  No previous snapshot — delta = 0 for this run")
         delta = 0.0
+        prev_hour = current_hour
     elif prev.get("date") != today:
         print(f"  ℹ️  Previous snapshot is from {prev.get('date')} — delta = 0 (day rollover)")
         delta = 0.0
+        prev_hour = current_hour
     else:
         delta = current["total_kwh"] - prev["total_kwh"]
+        prev_hour = prev.get("hour", current_hour)
         if delta < 0:
             print(f"  ⚠️  Negative delta ({delta:.3f} kWh) — clamping to 0")
             delta = 0.0
-        print(f"  ⚡ Delta this run: {delta:.3f} kWh → hour {current_hour:02d}:00")
 
-    hourly[current_hour] = round(hourly[current_hour] + delta, 4)
+    if delta > 0:
+        # Determine which hours the delta spans
+        if current_hour > prev_hour:
+            gap_hours = list(range(prev_hour + 1, current_hour + 1))
+        elif current_hour == prev_hour:
+            gap_hours = [current_hour]
+        else:
+            gap_hours = [current_hour]  # edge case: shouldn't happen same day
+
+        if len(gap_hours) <= 1:
+            # Normal case: no missed hours, dump into current
+            hourly[current_hour] = round(hourly[current_hour] + delta, 4)
+            print(f"  ⚡ Delta: {delta:.3f} kWh → hour {current_hour:02d}:00")
+        else:
+            # Gap detected: distribute delta across missed hours
+            print(f"  ⚠️  Gap detected: prev={prev_hour:02d}:00 → now={current_hour:02d}:00 ({len(gap_hours)} hours)")
+            
+            # Use irradiation as weights if available
+            if irradiation:
+                weights = [max(irradiation[h], 0.01) for h in gap_hours]
+            else:
+                weights = [1.0] * len(gap_hours)
+            
+            total_weight = sum(weights)
+            for h, w in zip(gap_hours, weights):
+                share = round(delta * (w / total_weight), 4)
+                hourly[h] = round(hourly[h] + share, 4)
+                print(f"    → hour {h:02d}:00 += {share:.3f} kWh (weight {w:.1f})")
 
     HOURLY_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(HOURLY_FILE, "w") as f:
@@ -476,10 +507,11 @@ def main():
     if prev:
         print(f"  📦 Prev snap: {prev.get('timestamp','?')} → {prev.get('total_kwh','?')} kWh")
 
-    hourly = build_hourly(current, prev, today)
-    
+    # Fetch irradiation first (needed for gap distribution in build_hourly)
     print(f"🌤️  Fetching irradiation data...")
     irradiation = fetch_irradiation(today)
+
+    hourly = build_hourly(current, prev, today, irradiation)
     
     print(f"📚 Loading historical data...")
     history = load_history()
