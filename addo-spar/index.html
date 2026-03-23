@@ -195,6 +195,33 @@
             color: #fff;
         }
 
+        .date-picker-row {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 12px 16px;
+            background: rgba(10, 15, 26, 0.5);
+            border-radius: 10px;
+        }
+
+        .date-picker-row.show { display: flex; }
+
+        .date-picker-row input[type="date"] {
+            background: rgba(15, 20, 25, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            color: #e2e8f0;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .date-picker-row label {
+            color: #9ca3af;
+            font-size: 0.8rem;
+        }
+
         .loading {
             text-align: center;
             padding: 100px;
@@ -249,9 +276,15 @@
                         <button class="more-btn" onclick="toggleMore()">More &#9660;</button>
                         <div class="more-menu" id="moreMenu">
                             <button onclick="switchChartMode('history', this); closeMore()">Daily History</button>
+                            <button onclick="showDatePicker(); closeMore()">View Past Day</button>
+                            <button onclick="exportCSV(); closeMore()">Export CSV</button>
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="date-picker-row" id="datePicker">
+                <label>Select date:</label>
+                <input type="date" id="dateInput" onchange="viewPastDay(this.value)">
             </div>
             <div class="chart-container">
                 <canvas id="hourlyChart"></canvas>
@@ -664,6 +697,83 @@
         }
 
         // Close dropdown when clicking outside
+        function showDatePicker() {
+            const picker = document.getElementById('datePicker');
+            picker.classList.toggle('show');
+            if (picker.classList.contains('show')) {
+                const input = document.getElementById('dateInput');
+                const history = dashboardData.history || {};
+                const dates = Object.keys(history).sort();
+                if (dates.length) {
+                    input.min = dates[0];
+                    input.max = dates[dates.length - 1];
+                }
+            }
+        }
+
+        function viewPastDay(dateStr) {
+            if (!dateStr) return;
+            const history = dashboardData.history || {};
+            const dayData = history[dateStr];
+            if (!dayData) {
+                alert('No data for ' + dateStr);
+                return;
+            }
+            currentChartMode = 'pastday';
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            
+            const hours = Array.from({length: 24}, (_, i) => i);
+            const labels = hours.map(h => (h < 10 ? '0' : '') + h + ':00');
+            const stats = dashboardData.stats_30day || {};
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            if (hourlyChart) hourlyChart.destroy();
+
+            const dayHourly = dayData.hourly || new Array(24).fill(0);
+            const dayIrrad = dayData.irradiation || new Array(24).fill(0);
+            const dt = new Date(dateStr + 'T00:00:00');
+            const dateLabel = dt.toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
+            hourlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { type:'line', label:'Irradiation (W/m²)', data:dayIrrad, backgroundColor:'rgba(133,77,14,0.6)', borderColor:'rgba(202,138,4,0.8)', borderWidth:1, fill:true, yAxisID:'y1', pointRadius:0, tension:0.4, order:3 },
+                        { type:'line', label:'30-Day Avg', data:stats.hourly_avg||new Array(24).fill(0), borderColor:'rgba(96,165,250,0.7)', borderWidth:2, borderDash:[6,4], fill:false, pointRadius:0, tension:0.4, order:2 },
+                        { type:'bar', label:dateLabel + ' (kW)', data:dayHourly, backgroundColor:'#22c55e', borderWidth:0, barPercentage:0.9, categoryPercentage:0.95, order:1 }
+                    ]
+                },
+                options: buildChartOptions(true)
+            });
+        }
+
+        function exportCSV() {
+            const history = dashboardData.history || {};
+            const stats = dashboardData.stats_30day || {};
+            const dates = Object.keys(history).sort();
+            if (!dates.length) { alert('No data to export'); return; }
+
+            let csv = 'Date,Hour,PV_kWh,Irradiation_Wm2,30d_Avg_kW,Daily_Total_kWh\n';
+            
+            for (const date of dates) {
+                const d = history[date];
+                const hourly = d.hourly || [];
+                const irrad = d.irradiation || [];
+                const avgHourly = stats.hourly_avg || [];
+                for (let h = 0; h < 24; h++) {
+                    csv += `${date},${String(h).padStart(2,'0')}:00,${(hourly[h]||0).toFixed(2)},${(irrad[h]||0).toFixed(1)},${(avgHourly[h]||0).toFixed(2)},${h===0 ? (d.total_kwh||0).toFixed(1) : ''}\n`;
+                }
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (SITE_CONFIG.name.replace(/\s+/g, '_') + '_hourly_data.csv');
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.more-dropdown')) {
                 closeMore();
