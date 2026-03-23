@@ -490,6 +490,8 @@
                 <div class="mini-legend-item"><div class="mini-legend-swatch" style="background:#22c55e;border-top:1px dashed #22c55e;height:0;"></div>Today</div>
                 <div class="mini-legend-item"><div class="mini-legend-swatch" style="background:#60a5fa;border-top:1px dashed #60a5fa;height:0;"></div>Median</div>
                 <div class="mini-legend-item"><div class="mini-legend-swatch" style="background:rgba(34,197,94,0.3);"></div>P25-75</div>
+                <div class="mini-legend-item"><div class="mini-legend-swatch" style="background:rgba(180,140,60,0.8);"></div>Min</div>
+                <div class="mini-legend-item"><div class="mini-legend-swatch" style="background:rgba(150,100,220,0.8);"></div>Max</div>
             `;
 
             card.innerHTML = `
@@ -503,8 +505,8 @@
                         <div class="site-status ${site.status}">System ${(site.status || 'offline').toUpperCase()}</div>
                     </div>
                     <div style="text-align: right;">
-                        <div class="site-stat-badge ${pctClass}">${pctOfAvg}% of avg</div>
-                        <div class="site-stat-badge ${paceClass}" style="margin-top:4px;">${paceRatio}% pace</div>
+                        <div class="site-stat-badge ${pctClass}" title="Today: ${totalKwh.toFixed(1)} kWh | 30-day avg: ${dailyAvg.toFixed(1)} kWh">${pctOfAvg}% of avg</div>
+                        <div class="site-stat-badge ${paceClass}" style="margin-top:4px;" title="Generated: ${totalKwh.toFixed(1)} kWh | Expected by now: ${expectedByNow.toFixed(1)} kWh">${paceRatio}% pace</div>
                     </div>
                 </div>
                 <div class="mini-legend" id="legend-${chartId}">
