@@ -1,9 +1,9 @@
 {
   "plant": "Kirkwood Tops",
-  "last_updated": "2026-03-25 17:37 SAST",
+  "last_updated": "2026-03-25 18:47 SAST",
   "date": "2026-03-25",
-  "total_kwh": 58.0,
-  "last_hour": 17,
+  "total_kwh": 58.2,
+  "last_hour": 18,
   "status": "ok",
   "alerts": {
     "offline": false,
@@ -30,7 +30,7 @@
       5.1151,
       3.5754,
       2.7246,
-      0.0,
+      0.2,
       0.0,
       0.0,
       0.0,
@@ -53,10 +53,10 @@
       810.0,
       836.0,
       788.0,
-      561.0,
-      395.0,
-      301.0,
-      124.0,
+      591.0,
+      390.0,
+      248.0,
+      118.0,
       5.0,
       0,
       0,
@@ -83,7 +83,7 @@
     5.1151,
     3.5754,
     2.7246,
-    0.0,
+    0.2,
     0.0,
     0.0,
     0.0,
@@ -106,10 +106,10 @@
     810.0,
     836.0,
     788.0,
-    561.0,
-    395.0,
-    301.0,
-    124.0,
+    591.0,
+    390.0,
+    248.0,
+    118.0,
     5.0,
     0,
     0,
@@ -1985,7 +1985,7 @@
       "last_hour": 23
     },
     "2026-03-25": {
-      "total_kwh": 58.0,
+      "total_kwh": 58.2,
       "hourly": [
         0.0,
         0.0,
@@ -2005,7 +2005,7 @@
         5.1151,
         3.5754,
         2.7246,
-        0.0,
+        0.2,
         0.0,
         0.0,
         0.0,
@@ -2028,18 +2028,18 @@
         810.0,
         836.0,
         788.0,
-        561.0,
-        395.0,
-        301.0,
-        124.0,
+        591.0,
+        390.0,
+        248.0,
+        118.0,
         5.0,
         0,
         0,
         0,
         0
       ],
-      "last_updated": "2026-03-25 17:37 SAST",
-      "last_hour": 17
+      "last_updated": "2026-03-25 18:47 SAST",
+      "last_hour": 18
     }
   },
   "thresholds": {
@@ -2052,18 +2052,13 @@
     }
   },
   "debug": {
-    "curve_fraction": 1.0,
-    "expected_by_now": 51.5,
-    "irrad_factor": 1.009,
-    "actual_kwh": 58.0,
-    "pace_trigger": 15.5,
-    "projected_total": 58.0,
-    "low_day_kwh": 22.7,
+    "reason": "outside solar window (nighttime)",
+    "curve_fraction": 0.0,
+    "expected_by_now": 0.0,
+    "pace_trigger": 0.0,
+    "projected_total": 0.0,
+    "irrad_factor": 1.0,
     "sunrise": 5.92,
-    "sunset": 18.08,
-    "checks": {
-      "pace_low": false,
-      "total_low": false
-    }
+    "sunset": 18.08
   }
 }
