@@ -1,13 +1,13 @@
 {
   "plant": "Addo Spar",
-  "last_updated": "2026-03-27 17:07 SAST",
+  "last_updated": "2026-03-27 18:06 SAST",
   "date": "2026-03-27",
-  "total_kwh": 750.74,
-  "last_hour": 17,
-  "status": "low",
+  "total_kwh": 812.41,
+  "last_hour": 18,
+  "status": "ok",
   "alerts": {
     "offline": false,
-    "pace_low": true,
+    "pace_low": false,
     "total_low": false
   },
   "today": {
@@ -30,7 +30,7 @@
       86.0,
       124.84,
       122.94,
-      0.0,
+      61.67,
       0.0,
       0.0,
       0.0,
@@ -53,10 +53,10 @@
       513.0,
       508.0,
       284.0,
-      289.0,
-      324.0,
-      159.0,
-      72.0,
+      438.0,
+      297.0,
+      217.0,
+      90.0,
       3.0,
       0,
       0,
@@ -83,7 +83,7 @@
     86.0,
     124.84,
     122.94,
-    0.0,
+    61.67,
     0.0,
     0.0,
     0.0,
@@ -106,10 +106,10 @@
     513.0,
     508.0,
     284.0,
-    289.0,
-    324.0,
-    159.0,
-    72.0,
+    438.0,
+    297.0,
+    217.0,
+    90.0,
     3.0,
     0,
     0,
@@ -315,10 +315,10 @@
       653.5,
       672.8,
       609.6,
-      514.2,
-      427.4,
-      262.0,
-      102.0,
+      532.9,
+      424.0,
+      269.2,
+      104.2,
       5.2,
       0.0,
       0.0,
@@ -731,7 +731,7 @@
       "last_hour": 0
     },
     "2026-03-27": {
-      "total_kwh": 750.74,
+      "total_kwh": 812.41,
       "hourly": [
         0.0,
         0.0,
@@ -751,7 +751,7 @@
         86.0,
         124.84,
         122.94,
-        0.0,
+        61.67,
         0.0,
         0.0,
         0.0,
@@ -774,18 +774,18 @@
         513.0,
         508.0,
         284.0,
-        289.0,
-        324.0,
-        159.0,
-        72.0,
+        438.0,
+        297.0,
+        217.0,
+        90.0,
         3.0,
         0,
         0,
         0,
         0
       ],
-      "last_updated": "2026-03-27 17:07 SAST",
-      "last_hour": 17
+      "last_updated": "2026-03-27 18:06 SAST",
+      "last_hour": 18
     }
   },
   "thresholds": {
@@ -798,18 +798,13 @@
     }
   },
   "debug": {
-    "curve_fraction": 1.0,
-    "expected_by_now": 3956.7,
-    "irrad_factor": 0.728,
-    "actual_kwh": 750.74,
-    "pace_trigger": 1187.0,
-    "projected_total": 750.8,
-    "low_day_kwh": 592.0,
+    "reason": "outside solar window (nighttime)",
+    "curve_fraction": 0.0,
+    "expected_by_now": 0.0,
+    "pace_trigger": 0.0,
+    "projected_total": 0.0,
+    "irrad_factor": 1.0,
     "sunrise": 5.92,
-    "sunset": 18.08,
-    "checks": {
-      "pace_low": true,
-      "total_low": false
-    }
+    "sunset": 18.08
   }
 }
