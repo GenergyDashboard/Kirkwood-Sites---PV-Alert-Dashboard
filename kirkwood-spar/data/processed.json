@@ -1,14 +1,14 @@
 {
   "plant": "Kirkwood Spar",
-  "last_updated": "2026-03-27 13:06 SAST",
+  "last_updated": "2026-03-27 13:55 SAST",
   "date": "2026-03-27",
-  "total_kwh": 1179.51,
-  "last_hour": 13,
-  "status": "ok",
+  "total_kwh": 166.09,
+  "last_hour": 14,
+  "status": "low",
   "alerts": {
     "offline": false,
     "pace_low": false,
-    "total_low": false
+    "total_low": true
   },
   "today": {
     "hourly_pv": [
@@ -20,13 +20,13 @@
       0.0,
       0.0,
       0.0,
-      9.12,
-      61.12,
-      266.02,
-      301.59,
-      222.22,
-      319.44,
-      0.0,
+      0.48,
+      7.65,
+      19.48,
+      29.36,
+      25.58,
+      39.87,
+      43.67,
       0.0,
       0.0,
       0.0,
@@ -73,13 +73,13 @@
     0.0,
     0.0,
     0.0,
-    9.12,
-    61.12,
-    266.02,
-    301.59,
-    222.22,
-    319.44,
-    0.0,
+    0.48,
+    7.65,
+    19.48,
+    29.36,
+    25.58,
+    39.87,
+    43.67,
     0.0,
     0.0,
     0.0,
@@ -731,7 +731,7 @@
       "last_hour": 0
     },
     "2026-03-27": {
-      "total_kwh": 1179.51,
+      "total_kwh": 166.09,
       "hourly": [
         0.0,
         0.0,
@@ -741,13 +741,13 @@
         0.0,
         0.0,
         0.0,
-        9.12,
-        61.12,
-        266.02,
-        301.59,
-        222.22,
-        319.44,
-        0.0,
+        0.48,
+        7.65,
+        19.48,
+        29.36,
+        25.58,
+        39.87,
+        43.67,
         0.0,
         0.0,
         0.0,
@@ -784,8 +784,8 @@
         0,
         0
       ],
-      "last_updated": "2026-03-27 13:06 SAST",
-      "last_hour": 13
+      "last_updated": "2026-03-27 13:55 SAST",
+      "last_hour": 14
     }
   },
   "thresholds": {
@@ -798,18 +798,18 @@
     }
   },
   "debug": {
-    "curve_fraction": 0.747,
-    "expected_by_now": 340.2,
-    "irrad_factor": 0.888,
-    "actual_kwh": 1179.51,
-    "pace_trigger": 102.1,
-    "projected_total": 1579.0,
+    "curve_fraction": 0.85,
+    "expected_by_now": 360.7,
+    "irrad_factor": 0.827,
+    "actual_kwh": 166.09,
+    "pace_trigger": 108.2,
+    "projected_total": 195.4,
     "low_day_kwh": 263.7,
     "sunrise": 5.92,
     "sunset": 18.08,
     "checks": {
       "pace_low": false,
-      "total_low": false
+      "total_low": true
     }
   }
 }
