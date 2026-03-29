@@ -1,13 +1,13 @@
 {
   "plant": "Addo Spar",
-  "last_updated": "2026-03-29 10:57 SAST",
+  "last_updated": "2026-03-29 11:52 SAST",
   "date": "2026-03-29",
-  "total_kwh": 302.35,
-  "last_hour": 11,
-  "status": "low",
+  "total_kwh": 1389.84,
+  "last_hour": 12,
+  "status": "ok",
   "alerts": {
     "offline": false,
-    "pace_low": true,
+    "pace_low": false,
     "total_low": false
   },
   "today": {
@@ -20,11 +20,11 @@
       0.0,
       0.0,
       0.0,
-      3.15,
-      39.61,
-      109.65,
-      149.94,
-      0.0,
+      9.66,
+      113.93,
+      291.35,
+      439.55,
+      535.35,
       0.0,
       0.0,
       0.0,
@@ -73,11 +73,11 @@
     0.0,
     0.0,
     0.0,
-    3.15,
-    39.61,
-    109.65,
-    149.94,
-    0.0,
+    9.66,
+    113.93,
+    291.35,
+    439.55,
+    535.35,
     0.0,
     0.0,
     0.0,
@@ -845,7 +845,7 @@
       "last_hour": 0
     },
     "2026-03-29": {
-      "total_kwh": 302.35,
+      "total_kwh": 1389.84,
       "hourly": [
         0.0,
         0.0,
@@ -855,11 +855,11 @@
         0.0,
         0.0,
         0.0,
-        3.15,
-        39.61,
-        109.65,
-        149.94,
-        0.0,
+        9.66,
+        113.93,
+        291.35,
+        439.55,
+        535.35,
         0.0,
         0.0,
         0.0,
@@ -898,8 +898,8 @@
         0,
         0
       ],
-      "last_updated": "2026-03-29 10:57 SAST",
-      "last_hour": 11
+      "last_updated": "2026-03-29 11:52 SAST",
+      "last_hour": 12
     }
   },
   "thresholds": {
@@ -912,17 +912,17 @@
     }
   },
   "debug": {
-    "curve_fraction": 0.5,
-    "expected_by_now": 2787.7,
-    "irrad_factor": 1.144,
-    "actual_kwh": 302.35,
-    "pace_trigger": 836.3,
-    "projected_total": 604.7,
+    "curve_fraction": 0.628,
+    "expected_by_now": 3522.8,
+    "irrad_factor": 1.152,
+    "actual_kwh": 1389.84,
+    "pace_trigger": 1056.8,
+    "projected_total": 2214.1,
     "low_day_kwh": 592.0,
     "sunrise": 5.92,
     "sunset": 18.08,
     "checks": {
-      "pace_low": true,
+      "pace_low": false,
       "total_low": false
     }
   }
