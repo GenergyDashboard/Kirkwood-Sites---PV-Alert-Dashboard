@@ -307,10 +307,21 @@ def determine_status(data: dict, month: int, stats: dict, irradiation: list = No
     sunrise, sunset = solar_window(month)
     alerts          = {"offline": False, "pace_low": False, "total_low": False}
 
+    # Nighttime — no alerts outside solar window
+    if hour < int(sunrise) or hour >= int(sunset):
+        return "ok", alerts, {
+            "reason": "outside solar window (nighttime)",
+            "curve_fraction": 0.0, "expected_by_now": 0.0,
+            "pace_trigger": 0.0, "projected_total": 0.0,
+            "irrad_factor": 1.0,
+            "sunrise": round(sunrise, 2), "sunset": round(sunset, 2),
+        }
+
+    # Offline (during daylight)
     if total < OFFLINE_THRESHOLD:
         alerts["offline"] = True
         return "offline", alerts, {
-            "reason": "no generation detected",
+            "reason": "no generation detected during daylight",
             "curve_fraction": 0.0, "expected_by_now": 0.0,
             "pace_trigger": 0.0, "projected_total": 0.0,
             "irrad_factor": 1.0,
