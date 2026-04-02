@@ -6,75 +6,195 @@
     <title>Kirkwood Spar - PV Monitoring Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0f1419; color: #e2e8f0;
-            min-height: 100vh; padding: 20px;
+            background: #0f1419;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
         }
-        .container { max-width: 1600px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { font-size: 2rem; margin-bottom: 8px; color: #fff; font-weight: 500; }
-        .last-updated { color: #64748b; font-size: 0.85rem; }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .last-updated {
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
         .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px; margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
+
         .stat-card {
             background: linear-gradient(135deg, #1a2332 0%, #1e2936 100%);
-            border-radius: 12px; padding: 20px 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
+
         .stat-label {
-            color: #9ca3af; font-size: 0.7rem; margin-bottom: 12px;
-            text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;
+            color: #9ca3af;
+            font-size: 0.7rem;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
         }
-        .stat-value { font-size: 2.8rem; font-weight: 700; margin-bottom: 8px; line-height: 1; }
+
+        .stat-value {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
         .stat-value.ok { color: #22c55e; }
         .stat-value.low { color: #fb923c; }
         .stat-value.offline { color: #ef4444; }
-        .stat-sublabel { color: #6b7280; font-size: 0.85rem; }
+
+        .stat-sublabel {
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+
         .chart-section {
             background: linear-gradient(135deg, #1a2332 0%, #1e2936 100%);
-            border-radius: 16px; padding: 30px; margin-bottom: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
+
         .chart-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 30px; flex-wrap: wrap; gap: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
-        .chart-title { font-size: 1.5rem; font-weight: 600; color: #fff; }
-        .chart-controls { display: flex; gap: 10px; }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+        }
+
         .toggle-btn {
-            padding: 10px 20px; border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(15,20,25,0.4); color: #9ca3af;
-            cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 20, 25, 0.4);
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
         }
-        .toggle-btn:hover { background: rgba(59,130,246,0.2); border-color: #3b82f6; color: #60a5fa; }
-        .toggle-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
-        .chart-container { position: relative; height: 450px; }
-        .more-dropdown { position: relative; display: inline-block; }
+
+        .toggle-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            color: #60a5fa;
+        }
+
+        .toggle-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: #fff;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 450px;
+        }
+
+        .more-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
         .more-btn {
-            padding: 10px 20px; border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(15,20,25,0.4); color: #60a5fa;
-            cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 20, 25, 0.4);
+            color: #60a5fa;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
         }
-        .more-btn:hover { background: rgba(59,130,246,0.2); border-color: #3b82f6; }
+
+        .more-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+
         .more-menu {
-            display: none; position: absolute; top: 100%; right: 0; margin-top: 6px;
-            background: #1a2332; border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-            z-index: 100; min-width: 170px; overflow: hidden;
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 6px;
+            background: #1a2332;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            min-width: 170px;
+            overflow: hidden;
         }
+
         .more-menu.show { display: block; }
+
         .more-menu button {
-            display: block; width: 100%; padding: 12px 18px;
-            background: transparent; border: none; color: #cbd5e1;
-            font-size: 0.85rem; text-align: left; cursor: pointer; transition: background 0.15s;
+            display: block;
+            width: 100%;
+            padding: 12px 18px;
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.15s;
         }
-        .more-menu button:hover { background: rgba(59,130,246,0.15); color: #fff; }
+
+        .more-menu button:hover {
+            background: rgba(59, 130, 246, 0.15);
+            color: #fff;
+        }
+
         .date-picker-row {
             display: none;
             align-items: center;
@@ -119,8 +239,18 @@
 
         .date-picker-row .go-btn:hover { background: #2563eb; }
 
-        .loading { text-align: center; padding: 100px; font-size: 1.3rem; color: #94a3b8; }
-        @media (max-width: 768px) { .chart-container { height: 350px; } }
+        .loading {
+            text-align: center;
+            padding: 100px;
+            font-size: 1.3rem;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -129,6 +259,7 @@
             <h1 id="siteName">Kirkwood Spar</h1>
             <div class="last-updated" id="lastUpdated">Loading...</div>
         </div>
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">Total Generation Today</div>
@@ -137,12 +268,12 @@
             </div>
             <div class="stat-card">
                 <div class="stat-label">30-Day Daily Average</div>
-                <div class="stat-value" id="avgKwh" style="color:#fff;">-- kWh</div>
+                <div class="stat-value" id="avgKwh" style="color: #fff;">-- kWh</div>
                 <div class="stat-sublabel">Typical day performance</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Last Hour Updated</div>
-                <div class="stat-value" id="lastHour" style="color:#fff;">--:00</div>
+                <div class="stat-value" id="lastHour" style="color: #fff;">--:00</div>
                 <div class="stat-sublabel" id="lastHourKwh">-- kW generated</div>
             </div>
             <div class="stat-card">
@@ -151,6 +282,7 @@
                 <div class="stat-sublabel" id="statusDetail">--</div>
             </div>
         </div>
+
         <div class="chart-section">
             <div class="chart-header">
                 <div class="chart-title">Hourly Generation</div>
@@ -178,12 +310,19 @@
                 <canvas id="hourlyChart"></canvas>
             </div>
         </div>
+
         <div id="dataLoading" class="loading">Loading data...</div>
     </div>
 
     <script>
-        const SITE_CONFIG = { name: "Kirkwood Spar", dataUrl: "./data/processed.json" };
-        let dashboardData = null, hourlyChart = null, currentChartMode = 'today';
+        const SITE_CONFIG = {
+            name: "Kirkwood Spar",
+            dataUrl: "./data/processed.json"
+        };
+
+        let dashboardData = null;
+        let hourlyChart = null;
+        let currentChartMode = 'today';
 
         // Crisp rendering on high-DPI and zoom
         Chart.defaults.devicePixelRatio = window.devicePixelRatio * 2 || 2;
@@ -195,48 +334,59 @@
             try {
                 const response = await fetch(SITE_CONFIG.dataUrl);
                 if (!response.ok) throw new Error('Failed to fetch data');
+                
                 dashboardData = await response.json();
                 document.getElementById('dataLoading').style.display = 'none';
                 updateDashboard();
                 updateChart();
             } catch (error) {
                 console.error('Error loading data:', error);
-                document.getElementById('dataLoading').innerHTML =
-                    `<div style="color:#ef4444;">Error loading data: ${error.message}</div>`;
+                document.getElementById('dataLoading').innerHTML = 
+                    `<div style="color: #ef4444;">Error loading data: ${error.message}</div>`;
             }
         }
 
         function updateDashboard() {
             const stats = dashboardData.stats_30day || {};
+            
             document.getElementById('siteName').textContent = SITE_CONFIG.name;
-            document.getElementById('lastUpdated').textContent = `Updated ${dashboardData.last_updated || 'N/A'}`;
+            document.getElementById('lastUpdated').textContent = 
+                `Updated ${dashboardData.last_updated || 'N/A'}`;
 
             const totalKwh = dashboardData.total_kwh || 0;
             const avgKwh = stats.daily_avg || 0;
             const status = dashboardData.status || 'offline';
-
+            
             document.getElementById('totalKwh').textContent = totalKwh.toFixed(1) + ' kWh';
             document.getElementById('totalKwh').className = `stat-value ${status}`;
+            
             document.getElementById('avgKwh').textContent = avgKwh.toFixed(1) + ' kWh';
-
+            
+            // Read from today object (with flat fallback)
             const today = dashboardData.today || {};
             const hourlyPv = today.hourly_pv || dashboardData.hourly_pv || [];
             const lastHour = dashboardData.last_hour;
             const lastHourStr = (lastHour !== undefined && lastHour !== null) ? lastHour : '--';
             const lastHourValue = lastHourStr !== '--' ? (hourlyPv[parseInt(lastHourStr)] || 0) : 0;
-
-            document.getElementById('lastHour').textContent =
+            
+            document.getElementById('lastHour').textContent = 
                 (lastHourStr !== '--' ? String(lastHourStr).padStart(2, '0') : '--') + ':00';
             document.getElementById('lastHourKwh').textContent = lastHourValue.toFixed(1) + ' kW generated';
+
             document.getElementById('status').textContent = status.toUpperCase();
             document.getElementById('status').className = `stat-value ${status}`;
-
+            
             const percentOfAvg = avgKwh > 0 ? ((totalKwh / avgKwh) * 100).toFixed(0) : 0;
-            document.getElementById('statusLabel').textContent = `${percentOfAvg}% of daily average`;
-
-            if (status === 'ok') document.getElementById('statusDetail').textContent = 'Generating normally';
-            else if (status === 'low') document.getElementById('statusDetail').textContent = 'Below expected generation';
-            else document.getElementById('statusDetail').textContent = 'No recent data';
+            document.getElementById('statusLabel').textContent = 
+                `${percentOfAvg}% of daily average`;
+            
+            if (status === 'ok') {
+                document.getElementById('statusDetail').textContent = 'Generating normally';
+            } else if (status === 'low') {
+                document.getElementById('statusDetail').textContent = 'Below expected generation';
+            } else {
+                document.getElementById('statusDetail').textContent = 'No recent data';
+            }
         }
 
 
@@ -255,80 +405,436 @@
             const hourlyPv = today.hourly_pv || dashboardData.hourly_pv || new Array(24).fill(0);
             const irradiation = today.irradiation || dashboardData.irradiation || new Array(24).fill(0);
             const stats = dashboardData.stats_30day || {};
+            
             const ctx = document.getElementById('hourlyChart').getContext('2d');
-            if (hourlyChart) hourlyChart.destroy();
+            
+            if (hourlyChart) {
+                hourlyChart.destroy();
+            }
 
             const labels = hours.map(h => (h < 10 ? '0' : '') + h + ':00');
+
             let chartData, chartOptions;
 
             if (currentChartMode === 'today') {
                 chartData = {
-                    labels,
+                    labels: labels,
                     datasets: [
-                        { type:'line', label:'Irradiation (W/m²)', data:irradiation, backgroundColor:'rgba(133,77,14,0.6)', borderColor:'rgba(202,138,4,0.8)', borderWidth:1, fill:true, yAxisID:'y1', pointRadius:0, tension:0.4, order:3 },
-                        { type:'line', label:'Predicted (Monthly Avg)', data:stats.hourly_avg||new Array(24).fill(0), borderColor:'rgba(96,165,250,0.7)', borderWidth:2, borderDash:[6,4], fill:false, pointRadius:0, tension:0.4, order:2 },
-                        { type:'bar', label:'PV Generation (kW)', data:hourlyPv, backgroundColor:'#22c55e', borderColor:'#22c55e', borderWidth:0, barPercentage:0.9, categoryPercentage:0.95, order:1 }
+                        {
+                            type: 'line',
+                            label: 'Irradiation (W/m²)',
+                            data: irradiation,
+                            backgroundColor: 'rgba(133, 77, 14, 0.6)',
+                            borderColor: 'rgba(202, 138, 4, 0.8)',
+                            borderWidth: 1,
+                            fill: true,
+                            yAxisID: 'y1',
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 3
+                        },
+                        {
+                            type: 'line',
+                            label: 'Predicted (Monthly Avg)',
+                            data: stats.hourly_avg || new Array(24).fill(0),
+                            borderColor: 'rgba(96, 165, 250, 0.7)',
+                            borderWidth: 2,
+                            borderDash: [6, 4],
+                            fill: false,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 2
+                        },
+                        {
+                            type: 'bar',
+                            label: 'PV Generation (kW)',
+                            data: hourlyPv,
+                            backgroundColor: '#22c55e',
+                            borderColor: '#22c55e',
+                            borderWidth: 0,
+                            barPercentage: 0.9,
+                            categoryPercentage: 0.95,
+                            order: 1
+                        }
                     ]
                 };
                 chartOptions = buildChartOptions(true);
+
             } else if (currentChartMode === 'average') {
                 chartData = {
-                    labels,
+                    labels: labels,
                     datasets: [
-                        { type:'line', label:'Min', data:stats.hourly_min||new Array(24).fill(0), backgroundColor:'rgba(120,80,40,0.12)', borderColor:'rgba(180,140,60,0.8)', borderWidth:1.5, fill:'+1', pointRadius:0, tension:0.4, order:6 },
-                        { type:'line', label:'Max', data:stats.hourly_max||new Array(24).fill(0), backgroundColor:'transparent', borderColor:'rgba(150,100,220,0.8)', borderWidth:1.5, pointRadius:0, tension:0.4, order:6 },
-                        { type:'line', label:'P10-P90', data:stats.hourly_p10||new Array(24).fill(0), backgroundColor:'rgba(107,114,128,0.2)', borderColor:'rgba(107,114,128,0.4)', borderWidth:1, fill:'+1', pointRadius:0, tension:0.4, order:5 },
-                        { type:'line', label:'', data:stats.hourly_p90||new Array(24).fill(0), backgroundColor:'transparent', borderColor:'rgba(107,114,128,0.4)', borderWidth:1, pointRadius:0, tension:0.4, order:5 },
-                        { type:'line', label:'P25-P75', data:stats.hourly_p25||new Array(24).fill(0), backgroundColor:'rgba(34,197,94,0.2)', borderColor:'rgba(34,197,94,0.5)', borderWidth:1.5, fill:'+1', pointRadius:0, tension:0.4, order:4 },
-                        { type:'line', label:'', data:stats.hourly_p75||new Array(24).fill(0), backgroundColor:'transparent', borderColor:'rgba(34,197,94,0.5)', borderWidth:1.5, pointRadius:0, tension:0.4, order:4 },
-                        { type:'line', label:'Median (P50)', data:stats.hourly_avg||new Array(24).fill(0), borderColor:'#60a5fa', borderWidth:2.5, borderDash:[8,4], fill:false, pointRadius:0, tension:0.4, order:2 },
-                        { type:'line', label:'Today Actual', data:truncateAtLastHour(hourlyPv), borderColor:'#22c55e', borderWidth:2, borderDash:[6,3], fill:false, pointRadius:0, tension:0.4, order:1 }
+                        {
+                            type: 'line',
+                            label: 'Min',
+                            data: stats.hourly_min || new Array(24).fill(0),
+                            backgroundColor: 'rgba(120, 80, 40, 0.12)',
+                            borderColor: 'rgba(180, 140, 60, 0.8)',
+                            borderWidth: 1.5,
+                            fill: '+1',
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 5
+                        },
+                        {
+                            type: 'line',
+                            label: 'Max',
+                            data: stats.hourly_max || new Array(24).fill(0),
+                            backgroundColor: 'transparent',
+                            borderColor: 'rgba(150, 100, 220, 0.8)',
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 5
+                        },
+                        {
+                            type: 'line',
+                            label: 'P10-P90',
+                            data: stats.hourly_p10 || new Array(24).fill(0),
+                            backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                            borderColor: 'rgba(107, 114, 128, 0.4)',
+                            borderWidth: 1,
+                            fill: '+1',
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 4
+                        },
+                        {
+                            type: 'line',
+                            label: '',
+                            data: stats.hourly_p90 || new Array(24).fill(0),
+                            backgroundColor: 'transparent',
+                            borderColor: 'rgba(107, 114, 128, 0.4)',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 4
+                        },
+                        {
+                            type: 'line',
+                            label: 'P25-P75',
+                            data: stats.hourly_p25 || new Array(24).fill(0),
+                            backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                            borderColor: 'rgba(34, 197, 94, 0.5)',
+                            borderWidth: 1.5,
+                            fill: '+1',
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 3
+                        },
+                        {
+                            type: 'line',
+                            label: '',
+                            data: stats.hourly_p75 || new Array(24).fill(0),
+                            backgroundColor: 'transparent',
+                            borderColor: 'rgba(34, 197, 94, 0.5)',
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 3
+                        },
+                        {
+                            type: 'line',
+                            label: 'Median (P50)',
+                            data: stats.hourly_avg || new Array(24).fill(0),
+                            borderColor: '#60a5fa',
+                            borderWidth: 2.5,
+                            borderDash: [8, 4],
+                            fill: false,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: 'Today Actual',
+                            data: truncateAtLastHour(hourlyPv),
+                            borderColor: '#22c55e',
+                            borderWidth: 2,
+                            borderDash: [6, 3],
+                            fill: false,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 1
+                        }
                     ]
                 };
                 chartOptions = buildChartOptions(false);
+
             } else if (currentChartMode === 'history') {
+                // Daily totals from history
                 const history = dashboardData.history || {};
                 const dates = Object.keys(history).sort();
                 const totals = dates.map(d => history[d].total_kwh || 0);
                 const dailyAvg = stats.daily_avg || 0;
+
                 chartData = {
-                    labels: dates.map(d => { const dt = new Date(d+'T00:00:00'); return dt.toLocaleDateString('en-ZA',{day:'numeric',month:'short'}); }),
+                    labels: dates.map(d => {
+                        const dt = new Date(d + 'T00:00:00');
+                        return dt.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' });
+                    }),
                     datasets: [
-                        { type:'line', label:'30-Day Avg', data:new Array(dates.length).fill(dailyAvg), borderColor:'rgba(96,165,250,0.6)', borderWidth:2, borderDash:[6,4], fill:false, pointRadius:0, order:1 },
-                        { type:'bar', label:'Daily Total (kWh)', data:totals, backgroundColor:totals.map(v=>v<dailyAvg*0.5?'#fb923c':'#22c55e'), borderWidth:0, barPercentage:0.8, categoryPercentage:0.9, order:2 }
+                        {
+                            type: 'line',
+                            label: '30-Day Avg',
+                            data: new Array(dates.length).fill(dailyAvg),
+                            borderColor: 'rgba(96, 165, 250, 0.6)',
+                            borderWidth: 2,
+                            borderDash: [6, 4],
+                            fill: false,
+                            pointRadius: 0,
+                            order: 1
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Daily Total (kWh)',
+                            data: totals,
+                            backgroundColor: totals.map(v => v < dailyAvg * 0.5 ? '#fb923c' : '#22c55e'),
+                            borderWidth: 0,
+                            barPercentage: 0.8,
+                            categoryPercentage: 0.9,
+                            order: 2
+                        }
                     ]
                 };
                 chartOptions = buildChartOptions(false, true);
             }
 
-            hourlyChart = new Chart(ctx, { type:'bar', data:chartData, options:chartOptions });
+            hourlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: chartOptions
+            });
         }
 
         function buildChartOptions(showIrradAxis, isHistory = false) {
             return {
-                responsive: true, maintainAspectRatio: false,
-                interaction: { mode:'index', intersect:false },
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
                 plugins: {
-                    legend: { display:true, position:'top', align:'center', labels: { color:'#9ca3af', font:{size:11}, usePointStyle:true, padding:15, filter:(item)=>item.text!=='' } },
-                    tooltip: { backgroundColor:'rgba(15,20,25,0.95)', titleColor:'#e2e8f0', bodyColor:'#cbd5e1', borderColor:'rgba(255,255,255,0.1)', borderWidth:1, padding:12, displayColors:true }
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'center',
+                        labels: {
+                            color: '#9ca3af',
+                            font: { size: 13 },
+                            usePointStyle: true,
+                            padding: 15,
+                            filter: (item) => item.text !== ''
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 20, 25, 0.95)',
+                        titleColor: '#e2e8f0',
+                        bodyColor: '#cbd5e1',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        filter: function(item) {
+                            return item.dataset.label !== '';
+                        }
+                    }
                 },
                 scales: {
-                    x: { grid:{color:'rgba(255,255,255,0.05)',drawBorder:false}, ticks:{color:'#6b7280',font:{size:10},maxRotation:isHistory?45:0} },
-                    y: { beginAtZero:true, position:'left', grid:{color:'rgba(255,255,255,0.05)',drawBorder:false}, ticks:{color:'#6b7280',font:{size:10},callback:function(v){return v.toFixed(0)+(isHistory?'':' kW')}}, title:{display:true,text:isHistory?'Energy (kWh)':'Power (kW)',color:'#9ca3af',font:{size:11}} },
-                    ...(showIrradAxis ? { y1: { beginAtZero:true, position:'right', grid:{drawOnChartArea:false}, ticks:{color:'#ca8a04',font:{size:10},callback:function(v){return v.toFixed(0)}}, title:{display:true,text:'Irradiation (W/m²)',color:'#ca8a04',font:{size:11}} } } : {})
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: { size: 12 },
+                            maxRotation: isHistory ? 45 : 0
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        position: 'left',
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: { size: 12 },
+                            callback: function(value) {
+                                return value.toFixed(0) + (isHistory ? '' : ' kW');
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: isHistory ? 'Energy (kWh)' : 'Power (kW)',
+                            color: '#9ca3af',
+                            font: { size: 11 }
+                        }
+                    },
+                    ...(showIrradAxis ? {
+                        y1: {
+                            beginAtZero: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            ticks: {
+                                color: '#ca8a04',
+                                font: { size: 12 },
+                                callback: function(value) {
+                                    return value.toFixed(0);
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Irradiation (W/m²)',
+                                color: '#ca8a04',
+                                font: { size: 11 }
+                            }
+                        }
+                    } : {})
                 }
             };
         }
 
         function switchChartMode(mode, btn) {
             currentChartMode = mode;
+            
             document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-            if (btn && btn.classList.contains('toggle-btn')) btn.classList.add('active');
+            if (btn && btn.classList.contains('toggle-btn')) {
+                btn.classList.add('active');
+            }
+            
             updateChart();
         }
-        function toggleMore() { document.getElementById('moreMenu').classList.toggle('show'); }
-        function closeMore() { document.getElementById('moreMenu').classList.remove('show'); }
-        document.addEventListener('click', function(e) { if (!e.target.closest('.more-dropdown')) closeMore(); });
+
+        function toggleMore() {
+            document.getElementById('moreMenu').classList.toggle('show');
+        }
+
+        function closeMore() {
+            document.getElementById('moreMenu').classList.remove('show');
+        }
+
+        // Close dropdown when clicking outside
+        function showDatePicker() {
+            const picker = document.getElementById('datePicker');
+            picker.classList.toggle('show');
+            if (picker.classList.contains('show')) {
+                const history = dashboardData.history || {};
+                const dates = Object.keys(history).sort();
+                if (!dates.length) return;
+
+                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                const availYears = [...new Set(dates.map(d => d.slice(0,4)))].sort();
+                const latest = dates[dates.length - 1];
+
+                const yearSel = document.getElementById('dateYear');
+                const monthSel = document.getElementById('dateMonth');
+                const daySel = document.getElementById('dateDay');
+
+                yearSel.innerHTML = availYears.map(y => `<option value="${y}" ${y===latest.slice(0,4)?'selected':''}>${y}</option>`).join('');
+                
+                function updateMonths() {
+                    const yr = yearSel.value;
+                    const availMonths = [...new Set(dates.filter(d=>d.startsWith(yr)).map(d=>parseInt(d.slice(5,7))))].sort((a,b)=>a-b);
+                    monthSel.innerHTML = availMonths.map(m => `<option value="${m}" ${m===parseInt(latest.slice(5,7))?'selected':''}>${months[m-1]}</option>`).join('');
+                    updateDays();
+                }
+
+                function updateDays() {
+                    const yr = yearSel.value;
+                    const mo = String(monthSel.value).padStart(2,'0');
+                    const prefix = yr + '-' + mo;
+                    const availDays = dates.filter(d=>d.startsWith(prefix)).map(d=>parseInt(d.slice(8,10))).sort((a,b)=>a-b);
+                    const latestDay = parseInt(latest.slice(8,10));
+                    daySel.innerHTML = availDays.map(d => `<option value="${d}" ${d===latestDay?'selected':''}>${d}</option>`).join('');
+                }
+
+                yearSel.onchange = updateMonths;
+                monthSel.onchange = updateDays;
+                updateMonths();
+            }
+        }
+
+        function goToPastDay() {
+            const yr = document.getElementById('dateYear').value;
+            const mo = String(document.getElementById('dateMonth').value).padStart(2,'0');
+            const dy = String(document.getElementById('dateDay').value).padStart(2,'0');
+            viewPastDay(yr + '-' + mo + '-' + dy);
+        }
+
+        function viewPastDay(dateStr) {
+            if (!dateStr) return;
+            const history = dashboardData.history || {};
+            const dayData = history[dateStr];
+            if (!dayData) {
+                alert('No data for ' + dateStr);
+                return;
+            }
+            currentChartMode = 'pastday';
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            
+            const hours = Array.from({length: 24}, (_, i) => i);
+            const labels = hours.map(h => (h < 10 ? '0' : '') + h + ':00');
+            const stats = dashboardData.stats_30day || {};
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            if (hourlyChart) hourlyChart.destroy();
+
+            const dayHourly = dayData.hourly || new Array(24).fill(0);
+            const dayIrrad = dayData.irradiation || new Array(24).fill(0);
+            const dt = new Date(dateStr + 'T00:00:00');
+            const dateLabel = dt.toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
+            hourlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { type:'line', label:'Irradiation (W/m²)', data:dayIrrad, backgroundColor:'rgba(133,77,14,0.6)', borderColor:'rgba(202,138,4,0.8)', borderWidth:1, fill:true, yAxisID:'y1', pointRadius:0, tension:0.4, order:3 },
+                        { type:'line', label:'30-Day Avg', data:stats.hourly_avg||new Array(24).fill(0), borderColor:'rgba(96,165,250,0.7)', borderWidth:2, borderDash:[6,4], fill:false, pointRadius:0, tension:0.4, order:2 },
+                        { type:'bar', label:dateLabel + ' (kW)', data:dayHourly, backgroundColor:'#22c55e', borderWidth:0, barPercentage:0.9, categoryPercentage:0.95, order:1 }
+                    ]
+                },
+                options: buildChartOptions(true)
+            });
+        }
+
+        function exportCSV() {
+            const history = dashboardData.history || {};
+            const stats = dashboardData.stats_30day || {};
+            const dates = Object.keys(history).sort();
+            if (!dates.length) { alert('No data to export'); return; }
+
+            let csv = 'Date,Hour,PV_kWh,Irradiation_Wm2,30d_Avg_kW,Daily_Total_kWh\n';
+            
+            for (const date of dates) {
+                const d = history[date];
+                const hourly = d.hourly || [];
+                const irrad = d.irradiation || [];
+                const avgHourly = stats.hourly_avg || [];
+                for (let h = 0; h < 24; h++) {
+                    csv += `${date},${String(h).padStart(2,'0')}:00,${(hourly[h]||0).toFixed(2)},${(irrad[h]||0).toFixed(1)},${(avgHourly[h]||0).toFixed(2)},${h===0 ? (d.total_kwh||0).toFixed(1) : ''}\n`;
+                }
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (SITE_CONFIG.name.replace(/\s+/g, '_') + '_hourly_data.csv');
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.more-dropdown')) {
+                closeMore();
+            }
+        });
     </script>
 </body>
 </html>
