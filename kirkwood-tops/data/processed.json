@@ -1,9 +1,9 @@
 {
   "plant": "Kirkwood Tops",
-  "last_updated": "2026-04-03 19:55 SAST",
+  "last_updated": "2026-04-03 21:08 SAST",
   "date": "2026-04-03",
   "total_kwh": 42.8,
-  "last_hour": 19,
+  "last_hour": 21,
   "status": "ok",
   "alerts": {
     "offline": false,
@@ -2038,8 +2038,8 @@
         0,
         0
       ],
-      "last_updated": "2026-04-03 19:55 SAST",
-      "last_hour": 19
+      "last_updated": "2026-04-03 21:08 SAST",
+      "last_hour": 21
     }
   },
   "thresholds": {
