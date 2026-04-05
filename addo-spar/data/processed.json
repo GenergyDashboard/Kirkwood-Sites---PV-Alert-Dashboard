@@ -1,14 +1,14 @@
 {
   "plant": "Addo Spar",
-  "last_updated": "2026-04-05 09:23 SAST",
+  "last_updated": "2026-04-05 10:59 SAST",
   "date": "2026-04-05",
-  "total_kwh": 25.05,
-  "last_hour": 10,
-  "status": "low",
+  "total_kwh": 409.68,
+  "last_hour": 11,
+  "status": "ok",
   "alerts": {
     "offline": false,
-    "pace_low": true,
-    "total_low": true
+    "pace_low": false,
+    "total_low": false
   },
   "today": {
     "hourly_pv": [
@@ -20,10 +20,10 @@
       0.0,
       0.0,
       0.0,
-      0.45,
-      7.73,
-      16.87,
-      0.0,
+      3.62,
+      34.82,
+      125.75,
+      245.49,
       0.0,
       0.0,
       0.0,
@@ -73,10 +73,10 @@
     0.0,
     0.0,
     0.0,
-    0.45,
-    7.73,
-    16.87,
-    0.0,
+    3.62,
+    34.82,
+    125.75,
+    245.49,
     0.0,
     0.0,
     0.0,
@@ -1244,7 +1244,7 @@
       "last_hour": 0
     },
     "2026-04-05": {
-      "total_kwh": 25.05,
+      "total_kwh": 409.68,
       "hourly": [
         0.0,
         0.0,
@@ -1254,10 +1254,10 @@
         0.0,
         0.0,
         0.0,
-        0.45,
-        7.73,
-        16.87,
-        0.0,
+        3.62,
+        34.82,
+        125.75,
+        245.49,
         0.0,
         0.0,
         0.0,
@@ -1297,8 +1297,8 @@
         0,
         0
       ],
-      "last_updated": "2026-04-05 09:23 SAST",
-      "last_hour": 10
+      "last_updated": "2026-04-05 10:59 SAST",
+      "last_hour": 11
     }
   },
   "thresholds": {
@@ -1311,18 +1311,18 @@
     }
   },
   "debug": {
-    "curve_fraction": 0.364,
-    "expected_by_now": 899.8,
-    "irrad_factor": 0.686,
-    "actual_kwh": 25.05,
-    "pace_trigger": 269.9,
-    "projected_total": 68.8,
+    "curve_fraction": 0.5,
+    "expected_by_now": 1361.9,
+    "irrad_factor": 0.756,
+    "actual_kwh": 409.68,
+    "pace_trigger": 408.6,
+    "projected_total": 819.4,
     "low_day_kwh": 592.0,
     "sunrise": 6.3,
     "sunset": 17.7,
     "checks": {
-      "pace_low": true,
-      "total_low": true
+      "pace_low": false,
+      "total_low": false
     }
   }
 }
