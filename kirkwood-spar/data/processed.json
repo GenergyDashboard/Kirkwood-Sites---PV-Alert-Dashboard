@@ -1,6 +1,6 @@
 {
   "plant": "Kirkwood Spar",
-  "last_updated": "2026-04-07 19:53 SAST",
+  "last_updated": "2026-04-07 20:10 SAST",
   "date": "2026-04-07",
   "total_kwh": 524.11,
   "last_hour": 20,
@@ -1411,7 +1411,7 @@
         0,
         0
       ],
-      "last_updated": "2026-04-07 19:53 SAST",
+      "last_updated": "2026-04-07 20:10 SAST",
       "last_hour": 20
     }
   },
