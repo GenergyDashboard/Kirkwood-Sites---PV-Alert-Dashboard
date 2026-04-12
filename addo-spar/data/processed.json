@@ -1,12 +1,12 @@
 {
   "plant": "Addo Spar",
-  "last_updated": "2026-04-12 01:50 SAST",
+  "last_updated": "2026-04-12 05:43 SAST",
   "date": "2026-04-12",
   "total_kwh": 0.0,
-  "last_hour": 2,
-  "status": "ok",
+  "last_hour": 6,
+  "status": "offline",
   "alerts": {
-    "offline": false,
+    "offline": true,
     "pace_low": false,
     "total_low": false
   },
@@ -1696,8 +1696,8 @@
         0,
         0
       ],
-      "last_updated": "2026-04-12 01:50 SAST",
-      "last_hour": 2
+      "last_updated": "2026-04-12 05:43 SAST",
+      "last_hour": 6
     }
   },
   "thresholds": {
@@ -1710,7 +1710,7 @@
     }
   },
   "debug": {
-    "reason": "outside solar window (nighttime)",
+    "reason": "no generation detected during daylight",
     "curve_fraction": 0.0,
     "expected_by_now": 0.0,
     "pace_trigger": 0.0,
