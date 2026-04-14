@@ -1,14 +1,14 @@
 {
   "plant": "Kirkwood Spar",
-  "last_updated": "2026-04-14 05:39 SAST",
+  "last_updated": "2026-04-14 08:09 SAST",
   "date": "2026-04-14",
-  "total_kwh": 0.0,
-  "last_hour": 6,
-  "status": "offline",
+  "total_kwh": 0.28,
+  "last_hour": 8,
+  "status": "low",
   "alerts": {
-    "offline": true,
-    "pace_low": false,
-    "total_low": false
+    "offline": false,
+    "pace_low": true,
+    "total_low": true
   },
   "today": {
     "hourly_pv": [
@@ -20,7 +20,7 @@
       0.0,
       0.0,
       0.0,
-      0.0,
+      0.28,
       0.0,
       0.0,
       0.0,
@@ -46,15 +46,15 @@
       0,
       0,
       5.0,
-      122.0,
-      323.0,
-      503.0,
+      118.0,
+      320.0,
+      500.0,
       638.0,
-      718.0,
-      741.0,
+      723.0,
+      740.0,
       698.0,
-      592.0,
-      433.0,
+      590.0,
+      429.0,
       238.0,
       53.0,
       0,
@@ -73,7 +73,7 @@
     0.0,
     0.0,
     0.0,
-    0.0,
+    0.28,
     0.0,
     0.0,
     0.0,
@@ -99,15 +99,15 @@
     0,
     0,
     5.0,
-    122.0,
-    323.0,
-    503.0,
+    118.0,
+    320.0,
+    500.0,
     638.0,
-    718.0,
-    741.0,
+    723.0,
+    740.0,
     698.0,
-    592.0,
-    433.0,
+    590.0,
+    429.0,
     238.0,
     53.0,
     0,
@@ -1757,7 +1757,7 @@
       "last_hour": 23
     },
     "2026-04-14": {
-      "total_kwh": 0.0,
+      "total_kwh": 0.28,
       "hourly": [
         0.0,
         0.0,
@@ -1767,7 +1767,7 @@
         0.0,
         0.0,
         0.0,
-        0.0,
+        0.28,
         0.0,
         0.0,
         0.0,
@@ -1793,15 +1793,15 @@
         0,
         0,
         5.0,
-        122.0,
-        323.0,
-        503.0,
+        118.0,
+        320.0,
+        500.0,
         638.0,
-        718.0,
-        741.0,
+        723.0,
+        740.0,
         698.0,
-        592.0,
-        433.0,
+        590.0,
+        429.0,
         238.0,
         53.0,
         0,
@@ -1810,8 +1810,8 @@
         0,
         0
       ],
-      "last_updated": "2026-04-14 05:39 SAST",
-      "last_hour": 6
+      "last_updated": "2026-04-14 08:09 SAST",
+      "last_hour": 8
     }
   },
   "thresholds": {
@@ -1824,13 +1824,18 @@
     }
   },
   "debug": {
-    "reason": "no generation detected during daylight",
-    "curve_fraction": 0.0,
-    "expected_by_now": 0.0,
-    "pace_trigger": 0.0,
-    "projected_total": 0.0,
-    "irrad_factor": 1.0,
+    "curve_fraction": 0.132,
+    "expected_by_now": 55.9,
+    "irrad_factor": 0.965,
+    "actual_kwh": 0.28,
+    "pace_trigger": 16.8,
+    "projected_total": 2.1,
+    "low_day_kwh": 142.3,
     "sunrise": 6.3,
-    "sunset": 17.7
+    "sunset": 17.7,
+    "checks": {
+      "pace_low": true,
+      "total_low": true
+    }
   }
 }
