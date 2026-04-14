@@ -1,7 +1,7 @@
 name: Scrape and Process Kirkwood Tops Data (Sunsynk)
 on:
   schedule:
-    - cron: '20,50 * * * *'
+    - cron: '18,35 3-19 * * *'
   workflow_dispatch:
 permissions:
   contents: write
