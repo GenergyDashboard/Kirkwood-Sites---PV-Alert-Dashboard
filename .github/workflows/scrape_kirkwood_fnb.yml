@@ -1,7 +1,7 @@
 name: Scrape and Process Kirkwood FNB Data
 on:
   schedule:
-    - cron: '5 * * * *'
+    - cron: '0 3-19 * * *'
   workflow_dispatch:
 permissions:
   contents: write
