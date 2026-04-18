@@ -1,13 +1,13 @@
 {
   "plant": "Addo Spar",
-  "last_updated": "2026-04-18 07:08 SAST",
+  "last_updated": "2026-04-18 09:10 SAST",
   "date": "2026-04-18",
-  "total_kwh": 0.0,
-  "last_hour": 7,
-  "status": "offline",
+  "total_kwh": 27.5,
+  "last_hour": 9,
+  "status": "low",
   "alerts": {
-    "offline": true,
-    "pace_low": false,
+    "offline": false,
+    "pace_low": true,
     "total_low": false
   },
   "today": {
@@ -20,8 +20,8 @@
       0.0,
       0.0,
       0.0,
-      0.0,
-      0.0,
+      0.93,
+      26.57,
       0.0,
       0.0,
       0.0,
@@ -73,8 +73,8 @@
     0.0,
     0.0,
     0.0,
-    0.0,
-    0.0,
+    0.93,
+    26.57,
     0.0,
     0.0,
     0.0,
@@ -307,19 +307,19 @@
       0.0,
       0.0,
       0.0,
-      9.7,
-      117.6,
-      280.1,
-      428.5,
-      540.3,
-      609.3,
-      624.0,
-      586.9,
-      501.5,
-      379.9,
-      229.6,
-      71.0,
-      1.8,
+      9.5,
+      117.7,
+      281.4,
+      431.0,
+      543.7,
+      613.2,
+      628.0,
+      590.5,
+      504.1,
+      381.1,
+      229.3,
+      70.0,
+      1.7,
       0.0,
       0.0,
       0.0,
@@ -1985,7 +1985,7 @@
       "last_hour": 21
     },
     "2026-04-18": {
-      "total_kwh": 0.0,
+      "total_kwh": 27.5,
       "hourly": [
         0.0,
         0.0,
@@ -1995,8 +1995,8 @@
         0.0,
         0.0,
         0.0,
-        0.0,
-        0.0,
+        0.93,
+        26.57,
         0.0,
         0.0,
         0.0,
@@ -2038,8 +2038,8 @@
         0,
         0
       ],
-      "last_updated": "2026-04-18 07:08 SAST",
-      "last_hour": 7
+      "last_updated": "2026-04-18 09:10 SAST",
+      "last_hour": 9
     }
   },
   "thresholds": {
@@ -2052,13 +2052,18 @@
     }
   },
   "debug": {
-    "reason": "no generation detected during daylight",
-    "curve_fraction": 0.0,
-    "expected_by_now": 0.0,
-    "pace_trigger": 0.0,
-    "projected_total": 0.0,
-    "irrad_factor": 1.0,
+    "curve_fraction": 0.238,
+    "expected_by_now": 609.6,
+    "irrad_factor": 1.084,
+    "actual_kwh": 27.5,
+    "pace_trigger": 182.9,
+    "projected_total": 115.4,
+    "low_day_kwh": 1.2,
     "sunrise": 6.3,
-    "sunset": 17.7
+    "sunset": 17.7,
+    "checks": {
+      "pace_low": true,
+      "total_low": false
+    }
   }
 }
