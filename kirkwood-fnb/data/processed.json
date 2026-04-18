@@ -1,14 +1,14 @@
 {
   "plant": "Kirkwood FNB",
-  "last_updated": "2026-04-18 09:25 SAST",
+  "last_updated": "2026-04-18 11:04 SAST",
   "date": "2026-04-18",
-  "total_kwh": 12.54,
-  "last_hour": 10,
-  "status": "low",
+  "total_kwh": 30.79,
+  "last_hour": 11,
+  "status": "ok",
   "alerts": {
     "offline": false,
-    "pace_low": true,
-    "total_low": true
+    "pace_low": false,
+    "total_low": false
   },
   "today": {
     "hourly_pv": [
@@ -23,7 +23,7 @@
       0.07,
       2.01,
       10.46,
-      0.0,
+      18.25,
       0.0,
       0.0,
       0.0,
@@ -76,7 +76,7 @@
     0.07,
     2.01,
     10.46,
-    0.0,
+    18.25,
     0.0,
     0.0,
     0.0,
@@ -1985,7 +1985,7 @@
       "last_hour": 21
     },
     "2026-04-18": {
-      "total_kwh": 12.54,
+      "total_kwh": 30.79,
       "hourly": [
         0.0,
         0.0,
@@ -1998,7 +1998,7 @@
         0.07,
         2.01,
         10.46,
-        0.0,
+        18.25,
         0.0,
         0.0,
         0.0,
@@ -2038,8 +2038,8 @@
         0,
         0
       ],
-      "last_updated": "2026-04-18 09:25 SAST",
-      "last_hour": 10
+      "last_updated": "2026-04-18 11:04 SAST",
+      "last_hour": 11
     }
   },
   "thresholds": {
@@ -2052,18 +2052,18 @@
     }
   },
   "debug": {
-    "curve_fraction": 0.364,
-    "expected_by_now": 65.2,
-    "irrad_factor": 1.213,
-    "actual_kwh": 12.54,
-    "pace_trigger": 19.6,
-    "projected_total": 34.5,
+    "curve_fraction": 0.5,
+    "expected_by_now": 90.8,
+    "irrad_factor": 1.229,
+    "actual_kwh": 30.79,
+    "pace_trigger": 27.3,
+    "projected_total": 61.6,
     "low_day_kwh": 40.9,
     "sunrise": 6.3,
     "sunset": 17.7,
     "checks": {
-      "pace_low": true,
-      "total_low": true
+      "pace_low": false,
+      "total_low": false
     }
   }
 }
