@@ -1,14 +1,14 @@
 {
   "plant": "Kirkwood Tops",
-  "last_updated": "2026-04-28 10:42 SAST",
+  "last_updated": "2026-04-28 13:20 SAST",
   "date": "2026-04-28",
-  "total_kwh": 0.0,
-  "last_hour": 10,
-  "status": "offline",
+  "total_kwh": 5.6,
+  "last_hour": 13,
+  "status": "low",
   "alerts": {
-    "offline": true,
-    "pace_low": false,
-    "total_low": false
+    "offline": false,
+    "pace_low": true,
+    "total_low": true
   },
   "today": {
     "hourly_pv": [
@@ -23,9 +23,9 @@
       0.0,
       0.0,
       0.0,
-      0.0,
-      0.0,
-      0.0,
+      1.878,
+      1.9215,
+      1.8005,
       0.0,
       0.0,
       0.0,
@@ -76,9 +76,9 @@
     0.0,
     0.0,
     0.0,
-    0.0,
-    0.0,
-    0.0,
+    1.878,
+    1.9215,
+    1.8005,
     0.0,
     0.0,
     0.0,
@@ -2042,7 +2042,7 @@
       "last_hour": 22
     },
     "2026-04-28": {
-      "total_kwh": 0.0,
+      "total_kwh": 5.6,
       "hourly": [
         0.0,
         0.0,
@@ -2055,9 +2055,9 @@
         0.0,
         0.0,
         0.0,
-        0.0,
-        0.0,
-        0.0,
+        1.878,
+        1.9215,
+        1.8005,
         0.0,
         0.0,
         0.0,
@@ -2095,8 +2095,8 @@
         0,
         0
       ],
-      "last_updated": "2026-04-28 10:42 SAST",
-      "last_hour": 10
+      "last_updated": "2026-04-28 13:20 SAST",
+      "last_hour": 13
     }
   },
   "thresholds": {
@@ -2109,13 +2109,18 @@
     }
   },
   "debug": {
-    "reason": "no generation detected during daylight",
-    "curve_fraction": 0.0,
-    "expected_by_now": 0.0,
-    "pace_trigger": 0.0,
-    "projected_total": 0.0,
-    "irrad_factor": 1.0,
+    "curve_fraction": 0.762,
+    "expected_by_now": 24.3,
+    "irrad_factor": 0.724,
+    "actual_kwh": 5.6,
+    "pace_trigger": 7.3,
+    "projected_total": 7.4,
+    "low_day_kwh": 13.3,
     "sunrise": 6.3,
-    "sunset": 17.7
+    "sunset": 17.7,
+    "checks": {
+      "pace_low": true,
+      "total_low": true
+    }
   }
 }
