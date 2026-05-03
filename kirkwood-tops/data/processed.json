@@ -1,9 +1,9 @@
 {
   "plant": "Kirkwood Tops",
-  "last_updated": "2026-05-03 13:10 SAST",
+  "last_updated": "2026-05-03 14:00 SAST",
   "date": "2026-05-03",
-  "total_kwh": 27.8,
-  "last_hour": 13,
+  "total_kwh": 32.8,
+  "last_hour": 14,
   "status": "ok",
   "alerts": {
     "offline": false,
@@ -26,7 +26,7 @@
       10.1,
       5.0843,
       5.2157,
-      0.0,
+      5.0,
       0.0,
       0.0,
       0.0,
@@ -79,7 +79,7 @@
     10.1,
     5.0843,
     5.2157,
-    0.0,
+    5.0,
     0.0,
     0.0,
     0.0,
@@ -2042,7 +2042,7 @@
       "last_hour": 22
     },
     "2026-05-03": {
-      "total_kwh": 27.8,
+      "total_kwh": 32.8,
       "hourly": [
         0.0,
         0.0,
@@ -2058,7 +2058,7 @@
         10.1,
         5.0843,
         5.2157,
-        0.0,
+        5.0,
         0.0,
         0.0,
         0.0,
@@ -2095,8 +2095,8 @@
         0,
         0
       ],
-      "last_updated": "2026-05-03 13:10 SAST",
-      "last_hour": 13
+      "last_updated": "2026-05-03 14:00 SAST",
+      "last_hour": 14
     }
   },
   "thresholds": {
@@ -2109,12 +2109,12 @@
     }
   },
   "debug": {
-    "curve_fraction": 0.775,
-    "expected_by_now": 32.9,
-    "irrad_factor": 1.013,
-    "actual_kwh": 27.8,
-    "pace_trigger": 9.9,
-    "projected_total": 35.9,
+    "curve_fraction": 0.883,
+    "expected_by_now": 38.0,
+    "irrad_factor": 1.026,
+    "actual_kwh": 32.8,
+    "pace_trigger": 11.4,
+    "projected_total": 37.1,
     "low_day_kwh": 13.3,
     "sunrise": 6.6,
     "sunset": 17.4,
