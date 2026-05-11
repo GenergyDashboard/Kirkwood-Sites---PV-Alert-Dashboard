@@ -1,9 +1,9 @@
 {
   "plant": "Addo Spar",
-  "last_updated": "2026-05-11 21:00 SAST",
+  "last_updated": "2026-05-11 22:56 SAST",
   "date": "2026-05-11",
   "total_kwh": 218.82,
-  "last_hour": 21,
+  "last_hour": 23,
   "status": "ok",
   "alerts": {
     "offline": false,
@@ -2095,8 +2095,8 @@
         0,
         0
       ],
-      "last_updated": "2026-05-11 21:00 SAST",
-      "last_hour": 21
+      "last_updated": "2026-05-11 22:56 SAST",
+      "last_hour": 23
     }
   },
   "thresholds": {
