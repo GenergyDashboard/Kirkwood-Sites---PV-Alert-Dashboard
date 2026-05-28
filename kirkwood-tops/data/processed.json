@@ -1,14 +1,14 @@
 {
   "plant": "Kirkwood Tops",
-  "last_updated": "2026-05-28 09:05 SAST",
+  "last_updated": "2026-05-28 12:38 SAST",
   "date": "2026-05-28",
-  "total_kwh": 1.5,
-  "last_hour": 9,
-  "status": "low",
+  "total_kwh": 18.9,
+  "last_hour": 12,
+  "status": "ok",
   "alerts": {
     "offline": false,
-    "pace_low": true,
-    "total_low": true
+    "pace_low": false,
+    "total_low": false
   },
   "today": {
     "hourly_pv": [
@@ -22,9 +22,9 @@
       0.0,
       0.0,
       0.0,
-      0.0,
-      0.0,
-      0.0,
+      4.3875,
+      6.1452,
+      6.8673,
       0.0,
       0.0,
       0.0,
@@ -75,9 +75,9 @@
     0.0,
     0.0,
     0.0,
-    0.0,
-    0.0,
-    0.0,
+    4.3875,
+    6.1452,
+    6.8673,
     0.0,
     0.0,
     0.0,
@@ -331,63 +331,6 @@
     "sample_days": 30
   },
   "history": {
-    "2026-04-27": {
-      "total_kwh": 0.0,
-      "hourly": [
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0
-      ],
-      "irradiation": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1.0,
-        82.0,
-        268.0,
-        443.0,
-        528.0,
-        583.0,
-        635.0,
-        572.0,
-        452.0,
-        248.0,
-        128.0,
-        21.0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "last_updated": "2026-04-27 22:37 SAST",
-      "last_hour": 22
-    },
     "2026-04-28": {
       "total_kwh": 13.4,
       "hourly": [
@@ -2099,7 +2042,7 @@
       "last_hour": 22
     },
     "2026-05-28": {
-      "total_kwh": 1.5,
+      "total_kwh": 18.9,
       "hourly": [
         0.0,
         0.0,
@@ -2111,9 +2054,9 @@
         0.0,
         0.0,
         0.0,
-        0.0,
-        0.0,
-        0.0,
+        4.3875,
+        6.1452,
+        6.8673,
         0.0,
         0.0,
         0.0,
@@ -2152,8 +2095,8 @@
         0,
         0
       ],
-      "last_updated": "2026-05-28 09:05 SAST",
-      "last_hour": 9
+      "last_updated": "2026-05-28 12:38 SAST",
+      "last_hour": 12
     }
   },
   "thresholds": {
@@ -2166,18 +2109,18 @@
     }
   },
   "debug": {
-    "curve_fraction": 0.225,
-    "expected_by_now": 6.7,
-    "irrad_factor": 0.918,
-    "actual_kwh": 1.5,
-    "pace_trigger": 2.0,
-    "projected_total": 6.7,
+    "curve_fraction": 0.643,
+    "expected_by_now": 21.9,
+    "irrad_factor": 1.058,
+    "actual_kwh": 18.9,
+    "pace_trigger": 6.6,
+    "projected_total": 29.4,
     "low_day_kwh": 11.0,
     "sunrise": 6.6,
     "sunset": 17.4,
     "checks": {
-      "pace_low": true,
-      "total_low": true
+      "pace_low": false,
+      "total_low": false
     }
   }
 }
