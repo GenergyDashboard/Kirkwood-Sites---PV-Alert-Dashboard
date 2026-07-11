@@ -1,9 +1,9 @@
 {
   "plant": "Kirkwood Tops",
-  "last_updated": "2026-07-11 14:35 SAST",
+  "last_updated": "2026-07-11 16:08 SAST",
   "date": "2026-07-11",
-  "total_kwh": 12.2,
-  "last_hour": 14,
+  "total_kwh": 14.3,
+  "last_hour": 16,
   "status": "ok",
   "alerts": {
     "offline": false,
@@ -27,8 +27,8 @@
       1.7373,
       2.4627,
       2.7,
-      0.0,
-      0.0,
+      1.2526,
+      0.8474,
       0.0,
       0.0,
       0.0,
@@ -80,8 +80,8 @@
     1.7373,
     2.4627,
     2.7,
-    0.0,
-    0.0,
+    1.2526,
+    0.8474,
     0.0,
     0.0,
     0.0,
@@ -2042,7 +2042,7 @@
       "last_hour": 21
     },
     "2026-07-11": {
-      "total_kwh": 12.2,
+      "total_kwh": 14.3,
       "hourly": [
         0.0,
         0.0,
@@ -2059,8 +2059,8 @@
         1.7373,
         2.4627,
         2.7,
-        0.0,
-        0.0,
+        1.2526,
+        0.8474,
         0.0,
         0.0,
         0.0,
@@ -2095,8 +2095,8 @@
         0,
         0
       ],
-      "last_updated": "2026-07-11 14:35 SAST",
-      "last_hour": 14
+      "last_updated": "2026-07-11 16:08 SAST",
+      "last_hour": 16
     }
   },
   "thresholds": {
@@ -2109,12 +2109,12 @@
     }
   },
   "debug": {
-    "curve_fraction": 0.888,
-    "expected_by_now": 15.9,
-    "irrad_factor": 0.636,
-    "actual_kwh": 12.2,
-    "pace_trigger": 4.8,
-    "projected_total": 13.7,
+    "curve_fraction": 0.998,
+    "expected_by_now": 17.2,
+    "irrad_factor": 0.613,
+    "actual_kwh": 14.3,
+    "pace_trigger": 5.2,
+    "projected_total": 14.3,
     "low_day_kwh": 15.6,
     "sunrise": 6.69,
     "sunset": 17.31,
